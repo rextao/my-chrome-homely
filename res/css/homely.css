@@ -1,0 +1,223 @@
+html {
+    min-height: 100%;
+}
+body {
+    display: none;
+    padding: 40px 0 20px;
+    background: none;
+    font-family: "Segoe UI", sans-serif;
+    -webkit-user-select: none;
+}
+body.topbar-fix {
+    padding-top: 90px;
+}
+@media (min-width: 768px) {
+    .navbar .container-fluid {
+        padding-left: 0;
+    }
+    #time {
+        margin-left: 0;
+    }
+    #notepad {
+        width: 300px !important;
+    }
+    .menu-label {
+        display: none;
+    }
+}
+@media (max-width: 767px) {
+    .menu-label {
+        display: inline;
+    }
+}
+.incognito {
+    display: none !important;
+}
+#settings-import-file, #menu-collapse-toggle {
+    display: none;
+}
+#notepad {
+    width: calc(100% - 20px);
+    margin: 5px 10px;
+}
+#notepad.notepad-saved {
+    background: url(../img/check-bg.png) no-repeat right 3px bottom 3px;
+}
+.btn-light {
+    background-color: #ddd;
+    border-color: #d4d4d4;
+    color: #333;
+}
+.btn-light:hover,
+.btn-light:focus,
+.btn-light:active,
+.btn-light.active {
+    background-color: #cfcfcf;
+    border-color: #c3c3c3;
+}
+.btn-dark {
+    background-color: #444;
+    border-color: #404040;
+    color: #fff;
+}
+.btn-dark:hover,
+.btn-dark:focus,
+.btn-dark:active,
+.btn-dark.active {
+    background-color: #333;
+    border-color: #222;
+    color: #fff;
+}
+.panel.panel-dark {
+    background-color: #222;
+    border-color: #080808;
+}
+.panel.panel-dark > .panel-heading {
+    background-color: #333;
+    border-color: #080808;
+    color: #999;
+}
+.caret-right {
+    border-bottom: 4px solid transparent;
+    border-top: 4px solid transparent;
+    border-left: 4px solid #000;
+    display: inline-block;
+    height: 0;
+    opacity: 0.3;
+    vertical-align: top;
+    width: 0;
+}
+.panel.panel-dark > .panel-heading .caret-right {
+    border-left-color: #fff;
+}
+a {
+    cursor: pointer;
+}
+.modal-title input.input-lg {
+    width: 90%;
+}
+#links .panel-body .btn {
+    white-space: normal;
+}
+#links-editor .alert {
+    margin-bottom: 0;
+}
+#links-editor table {
+    margin-bottom: 7px;
+}
+#links-editor td label.checkbox-inline {
+    margin-top: 7px;
+}
+#links-editor tr td:nth-child(1) {
+    width: 40px;
+}
+#links-editor tr td:nth-child(2):not(:last-of-type) {
+    width: 30%;
+}
+#links-editor .well:last-of-type {
+    margin-bottom: 0;
+}
+.btn-block + .btn-block {
+    margin-top: 5px;
+}
+.dropdown-menu a small.text-muted {
+    margin-left: 10px;
+}
+#menu-bookmarks, #bookmarks {
+    display: none;
+}
+#bookmarks .panel-heading {
+    padding: 10px 10px 5px 15px;
+}
+#bookmarks .panel-body {
+    padding: 15px 10px 10px 15px;
+}
+#bookmarks .panel-heading {
+    padding: 10px 10px 5px 15px;
+}
+#bookmarks .panel-heading .caret-right {
+    margin: 11px 5px 0 0;
+}
+#bookmarks .btn {
+    margin-bottom: 5px;
+    margin-right: 5px;
+    max-width: 100%;
+    overflow: hidden;
+}
+#bookmarks .alert {
+    margin: 0 5px 5px 0;
+}
+#bookmarks hr {
+    margin: 0;
+}
+#bookmarks.panel-dark hr {
+    border-color: #080808;
+}
+#menu-apps, #menu-history, #menu-baskets, #menu-notifs {
+    display: none;
+}
+#menu-baskets span.title {
+    margin-right: 35px;
+}
+input[type=range] {
+    margin-top: 6px;
+}
+.input-mono {
+    font-family: monospace;
+    font-size: 11px;
+    padding: 6px 8px;
+}
+.modal {
+    overflow-y: auto;
+}
+.modal-footer {
+    margin-top: 0;
+}
+.form-control-pad-bottom {
+    padding-bottom: 7px;
+}
+.form-control-nomar-bottom {
+    margin-bottom: 0;
+}
+.form-group label.checkbox-inline.text-muted {
+    color: #999;
+    cursor: not-allowed;
+}
+#settings .nav-tabs {
+    margin-bottom: 15px;
+}
+#settings .nav-tabs a {
+    padding: 10px;
+}
+#settings .input-inline {
+    display: inline-block;
+    margin-left: 5px;
+    margin-bottom: 3px;
+    vertical-align: text-top;
+}
+#settings-notifs-gmail-accounts {
+    width: 100px;
+}
+#settings-general-weather-location {
+    width: 180px;
+}
+#settings-style-panel label:not(.active) i.fa {
+    display: none;
+}
+#settings .form-group:last-of-type {
+    margin-bottom: 10px;
+}
+#shortcuts .modal-body {
+    padding: 0 20px 10px;
+}
+#shortcuts .alert {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+#about h2 {
+    margin-top: 0;
+}
+#about .btn-group {
+    margin-top: 8px;
+    margin-bottom: 16px;
+}

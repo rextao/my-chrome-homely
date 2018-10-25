@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="../../lib/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../../lib/css/font-awesome.min.css">
+        <link rel="stylesheet" href="../css/homely.css">
+        <link rel="icon" href="../img/icon-16.png">
+        <meta http-equiv="content-type" content="text/html;charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    </head>
+    <body>
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <div id="menu-collapse-toggle">
+                        <button class="navbar-toggle" data-toggle="collapse" data-target=".collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                    </div>
+                </div>
+                <div id="menu-collapse">
+                    <ul id="menu-left" class="nav navbar-nav">
+                        <li class="incognito"><a><i class="fa fa-exclamation-circle"></i> <span class="menu-label">Incognito</span></a></li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li id="menu-links"><a><i class="fa fa-link"></i> <span class="menu-label">Links</span></a></li>
+                        <li id="menu-bookmarks"><a><i class="fa fa-bookmark"></i> <span class="menu-label">Bookmarks</span></a></li>
+                        <li id="menu-apps" class="dropdown">
+                            <a id="apps-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-chrome"></i> <span class="menu-label">Apps</span> <b class="caret"></b></a>
+                            <ul id="apps-list" class="dropdown-menu"></ul>
+                        </li>
+                        <li id="menu-history" class="dropdown">
+                            <a id="history-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-history"></i> <span class="menu-label">History</span> <b class="caret"></b></a>
+                            <ul id="history-list" class="dropdown-menu"></ul>
+                        </li>
+                        <li id="menu-baskets" class="dropdown">
+                            <a id="baskets-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-shopping-basket"></i> <span class="menu-label">Baskets</span> <span class="badge">0</span> <b class="caret"></b></a>
+                            <ul id="baskets-list" class="dropdown-menu"></ul>
+                        </li>
+                        <li id="menu-notifs" class="dropdown">
+                            <a id="notifs-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bell-o"></i> <span class="menu-label">Notifications</span> <span class="badge">0</span> <b class="caret"></b></a>
+                            <ul id="notifs-list" class="dropdown-menu"></ul>
+                        </li>
+                        <li id="menu-settings" class="dropdown">
+                            <a id="settings-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cog"></i> <span class="menu-label">Settings</span> <b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a id="settings-toggle" data-toggle="modal" data-target="#settings"><i class="fa fa-fw fa-magic"></i> Customise</a></li>
+                                <li class="divider"></li>
+                                <li><a id="settings-import"><i class="fa fa-fw fa-arrow-left"></i> Import from file</a></li>
+                                <li><a id="settings-export" download="homely.json"><i class="fa fa-fw fa-arrow-right"></i> Export to file</a></li>
+                                <li class="divider"></li>
+                                <li><a id="about-toggle" data-toggle="modal" data-target="#about"><i class="fa fa-fw fa-home"></i> About <span class="ext-name"></span></a></li>
+                            </ul>
+                            <input id="settings-import-file" type="file">
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div id="alerts"></div>
+        <div id="links" class="main row"></div>
+        <div id="links-editor" class="modal fade">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+                        <h4 class="modal-title">
+                            <input id="links-editor-title" type="text" class="form-control input-lg" placeholder="Block label">
+                        </h4>
+                    </div>
+                    <div id="links-editor-body" class="modal-body"></div>
+                    <div class="modal-footer">
+                        <div class="btn-group pull-left">
+                            <button id="links-editor-add-link" class="btn btn-default"><i class="fa fa-globe"></i> Add link</button>
+                            <button id="links-editor-add-menu" class="btn btn-default"><i class="fa fa-list"></i> Add menu</button>
+                        </div>
+                        <button id="links-editor-save" class="btn btn-primary"><i class="fa fa-check"></i> Save</button>
+                        <button id="links-editor-delete" class="btn btn-danger"><i class="fa fa-trash-o"></i> Delete</button>
+                        <button class="btn btn-default" data-dismiss="modal"><i class="fa fa-undo"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="bookmarks" class="main panel">
+            <div class="panel-heading">
+                <div class="pull-right">
+                    <input id="bookmarks-search" type="search" class="form-control input-sm" placeholder="Search...">
+                </div>
+                <div id="bookmarks-title"></div>
+            </div>
+            <div id="bookmarks-block" class="panel-body"></div>
+        </div>
+        <div id="settings" class="modal fade">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+                        <h4 class="modal-title"><i class="fa fa-magic"></i>设置</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="settings-alerts"></div>
+                        <ul id="settings-tabs" class="nav nav-tabs nav-justified">
+                            <li class="active"><a data-toggle="tab" data-target="#settings-tab-links"><i class="fa fa-link"></i> <span class="hidden-sm">链接</span></a></li>
+                            <li><a data-toggle="tab" data-target="#settings-tab-bookmarks"><i class="fa fa-bookmark"></i> <span class="hidden-sm">书签</span></a></li>
+                            <li><a data-toggle="tab" data-target="#settings-tab-history"><i class="fa fa-history"></i> <span class="hidden-sm">历史</span></a></li>
+                            <li><a data-toggle="tab" data-target="#settings-tab-baskets"><i class="fa fa-shopping-basket"></i> <span class="hidden-sm">Baskets</span></a></li>
+                            <li><a data-toggle="tab" data-target="#settings-tab-general"><i class="fa fa-star"></i> <span class="hidden-sm">General</span></a></li>
+                            <li><a data-toggle="tab" data-target="#settings-tab-style"><i class="fa fa-paint-brush"></i> <span class="hidden-sm">Style</span></a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active form-horizontal" id="settings-tab-links">
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">模块控制</label>
+                                    <div class="col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-links-edit-menu" type="checkbox">
+                                            <span>显示模块的编辑按钮</span>
+                                        </label>
+                                        <p class="help-block">鼠标移动到模块头部显示可编辑按钮</p>
+                                    </div>
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-links-edit-dragdrop" type="checkbox">
+                                            <span>启用拖放重新排序功能</span>
+                                        </label>
+                                        <p class="help-block">拖拽模块头部可以移动到任意位置</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">行为</label>
+                                    <div class="col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-links-behaviour-dropdownmiddle" type="checkbox">
+                                            <span>启动ctrl+鼠标左键点击下拉打开全部标签</span>
+                                        </label>
+                                        <p class="help-block">下拉中的每个链接都会打开</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane form-horizontal" id="settings-tab-bookmarks">
+                                <div class="form-group settings-perm-bookmarks">
+                                    <label class="col-sm-3 control-label">Enable</label>
+                                    <div class="col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-bookmarks-enable" type="checkbox">
+                                            <span>Enable bookmarks view</span>
+                                        </label>
+                                        <p class="help-block">Uncheck to restrict the extension having access to bookmarks.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Bookmarklets</label>
+                                    <div class="col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-bookmarks-bookmarklets" type="checkbox">
+                                            <span>Show bookmarklets in folders</span>
+                                        </label>
+                                        <p class="help-block">Bookmarklets will appear faded out and disabled.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Folders</label>
+                                    <div class="col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-bookmarks-foldercontents" type="checkbox">
+                                            <span>Middle-click to open contents</span>
+                                        </label>
+                                        <p class="help-block">Open all links in a folder, each in their own tab.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Layouts</label>
+                                    <div class="col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-bookmarks-split" type="checkbox">
+                                            <span>Split folders and links</span>
+                                        </label>
+                                        <p class="help-block">Group bookmarks by type, folders above and links below.</p>
+                                    </div>
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-bookmarks-merge" type="checkbox">
+                                            <span>Merge links/bookmarks views</span>
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input id="settings-bookmarks-above" type="checkbox">
+                                            <span>Bookmarks above links</span>
+                                        </label>
+                                        <p class="help-block">Show both links and bookmarks blocks on one page.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane form-horizontal" id="settings-tab-history">
+                                <div class="alert alert-warning incognito"><strong>Note:</strong> the history dropdown is disabled whilst in incognito mode.</div>
+                                <div class="form-group settings-perm-history">
+                                    <label class="col-sm-3 control-label">Enable</label>
+                                    <div class="col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-history-enable" type="checkbox">
+                                            <span>Enable history dropdown</span>
+                                        </label>
+                                        <p class="help-block">Uncheck to restrict the extension having access to history.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="settings-history-limit" class="col-sm-3 control-label">List size: <span id="settings-history-limit-value"></span></label>
+                                    <div class="col-sm-8">
+                                        <input id="settings-history-limit" type="range" min="1" max="50">
+                                        <p class="help-block">The number of items shown in the list.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane form-horizontal" id="settings-tab-baskets">
+                                <div class="alert alert-warning incognito"><strong>Note:</strong> the baskets dropdown is disabled whilst in incognito mode.</div>
+                                <div class="form-group form-control-nomar-bottom">
+                                    <label class="col-sm-3 control-label">Sites</label>
+                                    <div class="col-sm-8">
+                                        <p class="form-control-static">Select websites to check counts in shopping baskets.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group form-control-nomar-bottom settings-perm" data-key="amazon-uk">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-baskets-amazon-uk" type="checkbox">
+                                            <span><i class="fa fa-amazon"></i> Amazon UK</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group form-control-nomar-bottom settings-perm" data-key="amazon-usa">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-baskets-amazon-usa" type="checkbox">
+                                            <span><i class="fa fa-amazon"></i> Amazon USA</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group form-control-nomar-bottom settings-perm" data-key="ebay">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-baskets-ebay" type="checkbox">
+                                            <span><i class="fa fa-shopping-bag"></i> eBay</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group settings-perm" data-key="steam-store">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-baskets-steam" type="checkbox">
+                                            <span><i class="fa fa-steam"></i> Steam</span>
+                                        </label>
+                                        <p class="help-block"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane form-horizontal" id="settings-tab-general">
+                                <div class="form-group">
+                                    <label for="settings-general-title" class="col-sm-3 control-label">Page title</label>
+                                    <div class="col-sm-8">
+                                        <input id="settings-general-title" type="text" class="form-control" placeholder="Homely">
+                                        <p class="help-block">The title as displayed in the Chrome tab.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Keyboard</label>
+                                    <div class="col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-general-keyboard" type="checkbox">
+                                            <span>Enable advanced keyboard navigation</span>
+                                        </label>
+                                        <p class="help-block">Press <code>?</code> or see the <a href="https://github.com/OllieTerrance/Homely#keyboard-shortcuts" class="link-external">readme</a> for controls.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group form-control-nomar-bottom form-control-pad-bottom">
+                                    <label class="col-sm-3 control-label">Widgets</label>
+                                    <div class="col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-general-clock-show" type="checkbox">
+                                            <span>Clock</span>
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input id="settings-general-clock-twentyfour" type="checkbox">
+                                            <span>24-hour</span>
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input id="settings-general-clock-seconds" type="checkbox">
+                                            <span>With seconds</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group form-control-nomar-bottom form-control-pad-bottom">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-general-timer-stopwatch" type="checkbox">
+                                            <span>Stopwatch</span>
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input id="settings-general-timer-countdown" type="checkbox">
+                                            <span>Countdown</span>
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input id="settings-general-timer-beep" type="checkbox">
+                                            <span>Beep at zero</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group form-control-nomar-bottom">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline form-control-pad-bottom">
+                                            <input id="settings-general-notepad-show" type="checkbox">
+                                            <span>Notepad</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group form-control-nomar-bottom settings-perm-management">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline form-control-pad-bottom">
+                                            <input id="settings-general-apps" type="checkbox">
+                                            <span>Chrome apps dropdown</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group form-control-nomar-bottom settings-perm" data-key="weather">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-general-weather-show" type="checkbox">
+                                            <span>Weather forecast</span>
+                                        </label>
+                                        <input id="settings-general-weather-location" type="text" class="form-control input-sm input-inline" placeholder="Location">
+                                        <button id="settings-general-weather-celsius" class="btn btn-sm btn-default input-inline">&deg;C</button>
+                                        <p class="help-block">Queries <a href="http://www.openweathermap.org" class="link-external">Open Weather Map</a> for the current weather forecast.</p>
+                                        <div class="alert alert-warning incognito"><strong>Note:</strong> weather is disabled whilst in incognito mode.</div>
+                                    </div>
+                                </div>
+                                <div class="form-group settings-perm" data-key="proxy">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-general-proxy" type="checkbox">
+                                            <span>IP address and proxy information</span>
+                                        </label>
+                                        <p class="help-block">Queries <a href="http://www.whatismyproxy.com" class="link-external">WhatIsMyProxy.com</a> to detect your connection's external IP address, and whether it might be routed via a proxy (<i class="fa fa-exchange"></i> is shown for a possible proxy connection).</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane form-horizontal" id="settings-tab-style">
+                                <div class="form-group">
+                                    <label for="settings-style-font" class="col-sm-3 control-label">Font</label>
+                                    <div class="col-sm-8">
+                                        <select id="settings-style-font" class="form-control"></select>
+                                        <p class="help-block">The font used for all text on the page.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Layout</label>
+                                    <div class="col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-style-fluid" type="checkbox">
+                                            <span>Fluid width</span>
+                                        </label>
+                                        <p class="help-block">With a fluid layout, links and bookmarks will widen to fill the page.</p>
+                                    </div>
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-style-topbar-fix" type="checkbox">
+                                            <span>Fixed top bar</span>
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input id="settings-style-topbar-dark" type="checkbox">
+                                            <span>Use dark bar</span>
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input id="settings-style-topbar-labels" type="checkbox">
+                                            <span>Show labels</span>
+                                        </label>
+                                        <p class="help-block">A fixed top bar will remain at the top as the page is scrolled.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Panel style</label>
+                                    <div class="col-sm-8">
+                                        <div id="settings-style-panel" class="btn-group btn-group-justified" data-toggle="buttons">
+                                            <label class="btn btn-default">
+                                                <input type="radio" name="settings-style-panel" value="default">
+                                                <i class="fa fa-check"></i>
+                                            </label>
+                                            <label class="btn btn-dark">
+                                                <input type="radio" name="settings-style-panel" value="dark">
+                                                <i class="fa fa-check"></i>
+                                            </label>
+                                            <label class="btn btn-primary">
+                                                <input type="radio" name="settings-style-panel" value="primary">
+                                                <i class="fa fa-check"></i>
+                                            </label>
+                                            <label class="btn btn-info">
+                                                <input type="radio" name="settings-style-panel" value="info">
+                                                <i class="fa fa-check"></i>
+                                            </label>
+                                            <label class="btn btn-success">
+                                                <input type="radio" name="settings-style-panel" value="success">
+                                                <i class="fa fa-check"></i>
+                                            </label>
+                                            <label class="btn btn-warning">
+                                                <input type="radio" name="settings-style-panel" value="warning">
+                                                <i class="fa fa-check"></i>
+                                            </label>
+                                            <label class="btn btn-danger">
+                                                <input type="radio" name="settings-style-panel" value="danger">
+                                                <i class="fa fa-check"></i>
+                                            </label>
+                                        </div>
+                                        <p class="help-block">The colour scheme used for links and bookmarks blocks.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="settings-style-background-image" class="col-sm-3 control-label">Background</label>
+                                    <div class="col-sm-8">
+                                        <div class="input-group">
+                                            <input id="settings-style-background-image" type="text" class="form-control">
+                                            <span class="input-group-btn">
+                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
+                                                <ul class="dropdown-menu pull-right">
+                                                    <li><a id="settings-style-background-choose"><i class="fa fa-fw fa-search"></i> Choose file...</a></li>
+                                                    <li class="divider"></li>
+                                                    <li><a id="settings-style-background-none"><i class="fa fa-fw fa-times"></i> No image (blank)</a></li>
+                                                    <li><a id="settings-style-background-default"><i class="fa fa-fw fa-undo"></i> Reset to default</a></li>
+                                                </ul>
+                                            </span>
+                                        </div>
+                                        <input id="settings-style-background-file" type="file" class="hidden">
+                                    </div>
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-style-background-repeat" type="checkbox" class="settings-style-background-check">
+                                            <span>Repeat</span>
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input id="settings-style-background-centre" type="checkbox" class="settings-style-background-check">
+                                            <span>Centre</span>
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input id="settings-style-background-fixed" type="checkbox" class="settings-style-background-check">
+                                            <span>Fixed</span>
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input id="settings-style-background-stretch" type="checkbox" class="settings-style-background-check">
+                                            <span>Stretch</span>
+                                        </label>
+                                        <p class="help-block">Select a file from your computer, or enter a data URI or remote link to an image.  Note that remote backgrounds will not load when working offline.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="settings-style-customcss-content" class="col-sm-3 control-label">Custom CSS</label>
+                                    <div class="col-sm-8 form-control-pad-bottom">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-style-customcss-enable" type="checkbox">
+                                            <span>Use a custom stylesheet</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <textarea id="settings-style-customcss-content" class="form-control input-mono" rows="10"></textarea>
+                                        <p class="help-block">Tweak any part of the page with custom style rules.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="settings-save" class="btn btn-primary"><i class="fa fa-check"></i> 保存</button>
+                        <button class="btn btn-default" data-dismiss="modal"><i class="fa fa-undo"></i> 取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="shortcuts" class="modal fade">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+                        <h4 class="modal-title"><i class="fa fa-keyboard-o"></i>&nbsp; Keyboard shortcuts</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">Note: shortcuts are disabled whilst input fields (text boxes, selects, buttons) are currently focused.  In addition, focus on the new tab starts in the omnibox &ndash; you will need to <code>Tab</code> into the page before keyboard shortcuts become active.</div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <h4>Global</h4>
+                                <ul>
+                                    <li><code>Q</code> <code>L</code> &ndash; switch to links</li>
+                                    <li><code>W</code> <code>B</code> &ndash; switch to bookmarks</li>
+                                    <li><code>E</code> <code>A</code> &ndash; open apps dropdown</li>
+                                    <li><code>R</code> <code>H</code> &ndash; open history dropdown</li>
+                                    <li><code>T</code> <code>K</code> &ndash; open baskets dropdown</li>
+                                    <li><code>Y</code> <code>N</code> &ndash; open notifcations dropdown</li>
+                                    <li><code>U</code> <code>S</code> &ndash; open settings dropdown (<code>Shift</code> for modal)</li>
+                                    <li><code>Tab</code> <code>Shift+Tab</code> &ndash; scroll through dropdown options</li>
+                                </ul>
+                                <h4>Apps</h4>
+                                <ul>
+                                    <li><code>Shift+A</code> &ndash; open Chrome Apps page</li>
+                                    <li><code>Shift+Alt+A</code> &ndash; go to Chrome Web Store</li>
+                                </ul>
+                                <h4>Links</h4>
+                                <ul>
+                                    <li><code>1</code> ... <code>0</code> &ndash; select nth block (<code>0</code> for 10th)</li>
+                                    <li><code>-</code> <code>=</code> &ndash; select previous/next block</li>
+                                    <li><code>[</code> <code>]</code> &ndash; select previous/next button in block</li>
+                                    <li><code>Enter</code> &ndash; open link</li>
+                                    <li><code>Backspace</code> &ndash; clear selection</li>
+                                </ul>
+                            </div>
+                            <div class="col-sm-6">
+                                <h4>Bookmarks</h4>
+                                <ul>
+                                    <li><code>/</code> &ndash; focus search field</li>
+                                </ul>
+                                <h4>Baskets</h4>
+                                <ul>
+                                    <li><code>Shift+K</code> &ndash; refresh baskets</li>
+                                    <li><code>Shift+Alt+K</code> &ndash; open all non-empty basket pages</li>
+                                </ul>
+                                <h4>Notifications</h4>
+                                <ul>
+                                    <li><code>Shift+N</code> &ndash; refresh notifications</li>
+                                    <li><code>Shift+Alt+N</code> &ndash; open all unread notification pages</li>
+                                </ul>
+                                <h4>Settings</h4>
+                                <p>These are ignored if a form field is active.</p>
+                                <ul>
+                                    <li><code>Tab</code> <code>Shift+Tab</code> &ndash; cycle tabs</li>
+                                    <li><code>Enter</code> &ndash; switch to fields in tab</li>
+                                    <li><code>Ctrl+Enter</code> &ndash; save and reload</li>
+                                    <li><code>Esc</code> &ndash; cancel</li>
+                                </ul>
+                                <h4>Misc</h4>
+                                <ul>
+                                    <li><code>?</code> &ndash; show keyboard shortcuts modal (this page)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="about" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+                        <h4 class="modal-title"><i class="fa fa-home"></i>&nbsp; About</h4>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="../img/logo-128.png"/>
+                        <h2><span class="ext-name"></span> <small class="ext-ver"></small></h2>
+                        <p>Written by <a class="link-external" href="http://terrance.allofti.me">Ollie Terrance</a></p>
+                        <div class="btn-group">
+                            <a class="btn btn-sm btn-default link-external" href="https://github.com/OllieTerrance/Homely"><i class="fa fa-github-alt"></i>&nbsp; GitHub project</a>
+                            <a class="btn btn-sm btn-default link-external" href="https://github.com/OllieTerrance/Homely/releases"><i class="fa fa-download"></i>&nbsp; Changelog</a>
+                            <a class="btn btn-sm btn-default link-external" href="https://chrome.google.com/webstore/detail/homely/fplghnonomhbnlhdnmjpipoomkjdpeim"><i class="fa fa-chrome"></i>&nbsp; Web Store page</a>
+                        </div>
+                        <p>Feedback is welcome &ndash; see the <a class="link-external" href="https://chrome.google.com/webstore/detail/homely/fplghnonomhbnlhdnmjpipoomkjdpeim/reviews">Reviews</a> section on the Chrome Web Store page.</p>
+                        <p>For bug reports and feature requests (including new inclusions for notifications and baskets), please add to the <a class="link-external" href="https://github.com/OllieTerrance/Homely/issues">issue tracker</a> on GitHub.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="../../lib/js/jquery.min.js"></script>
+        <script src="../../lib/js/jquery.sortable.min.js"></script>
+        <script src="../../lib/js/bootstrap.min.js"></script>
+        <script src="../../lib/js/mousetrap.min.js"></script>
+        <script src="../js/homely.js"></script>
+    </body>
+</html>

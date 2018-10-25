@@ -1,0 +1,35 @@
+{
+    "name": "Homely",
+    "short_name": "Homely",
+    "description": "基于Homely二次开发（https://github.com/OllieTerrance/Homely）",
+    "version": "2.0.0",
+    "author": "rextao",
+    "homepage_url": "",
+    "incognito": "split",
+    "offline_enabled": true,
+    "chrome_url_overrides": {
+        "newtab": "res/html/homely.html"
+    },
+    "omnibox": {
+        "keyword": "hl"
+    },
+    "background": {
+        "scripts": ["res/js/background.js"],
+        "persistent": false
+    },
+    "permissions": [
+        "fontSettings",
+        "storage"
+    ],
+    "optional_permissions": [
+        "bookmarks",
+        "history",
+        "management"
+    ],
+    "icons": {
+        "16": "res/img/icon-16.png",
+        "48": "res/img/logo-48.png",
+        "128": "res/img/logo-128.png"
+    },
+    "manifest_version": 2
+}
