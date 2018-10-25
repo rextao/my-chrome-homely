@@ -228,11 +228,12 @@ $(document).ready(function () {
     settings = $.extend(true, {}, settings, store);
     // apply custom styles
     document.title = settings.general["title"];
-    // setting 初始化
+    /***********************setting 初始化*********************************/
+    // 设置（样式）
     const settingStyle = new SettingStyle(settings.style);
-
-    /***********************设置（样式）*********************************/
     settingStyle.init();
+    const settingGeneral = new SettingGeneral(settings.general);
+
     // show current time in navbar
     if (settings.general["clock"].show) {
       var time = $("<div/>").attr("id", "time").addClass("navbar-brand");
@@ -1346,7 +1347,7 @@ $(document).ready(function () {
      */
     var populateSettings = function populateSettings() {
       settingStyle.populate();
-
+      settingGeneral.populate();
 
       $("#settings-links-edit-menu").prop("checked", settings.links["edit"].menu);
       $("#settings-links-edit-dragdrop").prop("checked", settings.links["edit"].dragdrop);
@@ -1403,15 +1404,10 @@ $(document).ready(function () {
           }
         })
       });
-      $("#settings-general-title").val(settings.general["title"]);
+
       $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
-      $("#settings-general-clock-show").prop("checked", settings.general["clock"].show);
-      $("#settings-general-clock-twentyfour").prop("checked", settings.general["clock"].twentyfour)
-        .prop("disabled", !settings.general["clock"].show)
-        .parent().toggleClass("text-muted", !settings.general["clock"].show);
-      $("#settings-general-clock-seconds").prop("checked", settings.general["clock"].seconds)
-        .prop("disabled", !settings.general["clock"].show)
-        .parent().toggleClass("text-muted", !settings.general["clock"].show);
+
+
       $("#settings-general-timer-stopwatch").prop("checked", settings.general["timer"].stopwatch);
       $("#settings-general-timer-countdown").prop("checked", settings.general["timer"].countdown);
       $("#settings-general-timer-beep").prop("checked", settings.general["timer"].beep)
@@ -1621,11 +1617,13 @@ $(document).ready(function () {
     $("#settings-style-customcss-enable").change(function (e) {
       $("#settings-style-customcss-content").prop("disabled", !$(this).prop("checked")).focus();
     });
-    /*******************modal保存按钮*************************************************/
+    /*******************setting 点击保存按钮*************************************************/
     $("#settings-save").click(function (e) {
-
+      // setting通用
+      settingGeneral.setTitleName(manif.name);// 避免调用save传入过多参数
+      settingGeneral.save();
+      // setting样式
       settingStyle.save();
-
 
       $("#settings-alerts").empty();
       $("#settings-save").prop("disabled", true).empty().append(fa("spinner fa-spin", false)).append(" Saving...");
@@ -1664,14 +1662,9 @@ $(document).ready(function () {
       //   });
       // }
       var revokeError = false;
-      if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
-      settings.general["title"] = $("#settings-general-title").val();
+
       settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
-      settings.general["clock"] = {
-        show: $("#settings-general-clock-show").prop("checked"),
-        twentyfour: $("#settings-general-clock-twentyfour").prop("checked"),
-        seconds: $("#settings-general-clock-seconds").prop("checked")
-      };
+
       settings.general["timer"] = {
         stopwatch: $("#settings-general-timer-stopwatch").prop("checked"),
         countdown: $("#settings-general-timer-countdown").prop("checked"),
