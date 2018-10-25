@@ -20,7 +20,10 @@
     "permissions": [
         "fontSettings",
         "storage",
-        "management"
+        "management",
+        "https://ticktick.com/",
+        "http://api.openweathermap.org/",
+        "http://www.whatismyproxy.com/"
     ],
     "optional_permissions": [
         "bookmarks",

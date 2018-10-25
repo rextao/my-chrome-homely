@@ -1,4 +1,7 @@
 $(document).ready(function () {
+  let style1 = new SettingStyle();
+  style1.init();
+
   // helper methods
   var cap = function cap(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -213,19 +216,7 @@ $(document).ready(function () {
   };
   // required permissions
   var ajaxPerms = {
-    "amazon-uk": ["https://www.amazon.co.uk/"],
-    "amazon-usa": ["https://www.amazon.com/"],
-    "ebay": ["http://cart.payments.ebay.co.uk/"],
-    "facebook": ["https://www.facebook.com/", "https://m.facebook.com/"],
-    "github": ["https://github.com/"],
-    "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
-    "linkedin": ["https://www.linkedin.com/"],
-    "outlook": ["https://login.live.com/", "https://*.mail.live.com/"],
-    "reddit": ["https://www.reddit.com/"],
-    "steam": ["https://steamcommunity.com/"],
-    "steam-store": ["https://store.steampowered.com/"],
     "ticktick": ["https://ticktick.com/"],
-    "twitter": ["https://twitter.com/"],
     "weather": ["http://api.openweathermap.org/"],
     "proxy": ["http://www.whatismyproxy.com/"]
   };
@@ -1494,7 +1485,8 @@ $(document).ready(function () {
         $("#settings-style-background-image").prop("placeholder", "(default)");
         break;
     }
-    // request list of fonts from FontSettings API
+    /***********************设置（样式）*********************************/
+    // 请求获取字体
     chrome.fontSettings.getFontList(function fontsCallback(fonts) {
       for (var i in fonts) {
         $("#settings-style-font").append($("<option/>").text(fonts[i].displayName));
@@ -1703,13 +1695,13 @@ $(document).ready(function () {
         });
       }
       settings.history["limit"] = parseInt($("#settings-history-limit").val());
-      var revoke = function revoke(key) {
-        chrome.permissions.remove({
-          origins: ajaxPerms[key]
-        }, function (success) {
-          if (!success) revokeError = true;
-        });
-      }
+      // var revoke = function revoke(key) {
+      //   chrome.permissions.remove({
+      //     origins: ajaxPerms[key]
+      //   }, function (success) {
+      //     if (!success) revokeError = true;
+      //   });
+      // }
       var revokeError = false;
       if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
       settings.general["title"] = $("#settings-general-title").val();
@@ -1726,22 +1718,22 @@ $(document).ready(function () {
       };
       settings.general["notepad"].show = $("#settings-general-notepad-show").prop("checked");
       settings.general["apps"] = $("#settings-general-apps").prop("checked");
-      if (!settings.general["apps"]) {
-        chrome.permissions.remove({
-          permissions: ["management"]
-        }, function (success) {
-          if (!success) revokeError = true;
-        });
-      }
+      // if (!settings.general["apps"]) {
+      //   chrome.permissions.remove({
+      //     permissions: ["management"]
+      //   }, function (success) {
+      //     if (!success) revokeError = true;
+      //   });
+      // }
       settings.general["weather"] = {
         show: $("#settings-general-weather-show").prop("checked"),
         location: $("#settings-general-weather-location").val(),
         celsius: $("#settings-general-weather-celsius").text()[1] === "C"
       };
       if (!settings.general["weather"].location) settings.general["weather"].show = false;
-      if (!settings.general["weather"].show) revoke("weather");
+      // if (!settings.general["weather"].show) revoke("weather");
       settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
-      if (!settings.general["proxy"]) revoke("proxy");
+      // if (!settings.general["proxy"]) revoke("proxy");
       settings.style["font"] = $("#settings-style-font").val();
       settings.style["fluid"] = $("#settings-style-fluid").prop("checked");
       settings.style["topbar"] = {
