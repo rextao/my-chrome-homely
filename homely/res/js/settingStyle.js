@@ -62,6 +62,7 @@ SettingStyle.prototype = {
     $("#settings-style-customcss-enable").prop("checked", this.style["customcss"].enable);
     $("#settings-style-customcss-content").prop("disabled", !this.style["customcss"].enable).val(this.style["customcss"].content);
   },
+  // 设置面板，点击保存时
   save(){
     this.style["font"] = $("#settings-style-font").val();
     // fluid与topbar，主要利用bootstrap，增加样式，改变布局的特性
