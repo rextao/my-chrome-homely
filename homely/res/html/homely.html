@@ -35,14 +35,6 @@
                             <a id="history-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-history"></i> <span class="menu-label">History</span> <b class="caret"></b></a>
                             <ul id="history-list" class="dropdown-menu"></ul>
                         </li>
-                        <li id="menu-baskets" class="dropdown">
-                            <a id="baskets-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-shopping-basket"></i> <span class="menu-label">Baskets</span> <span class="badge">0</span> <b class="caret"></b></a>
-                            <ul id="baskets-list" class="dropdown-menu"></ul>
-                        </li>
-                        <li id="menu-notifs" class="dropdown">
-                            <a id="notifs-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bell-o"></i> <span class="menu-label">Notifications</span> <span class="badge">0</span> <b class="caret"></b></a>
-                            <ul id="notifs-list" class="dropdown-menu"></ul>
-                        </li>
                         <li id="menu-settings" class="dropdown">
                             <a id="settings-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cog"></i> <span class="menu-label">Settings</span> <b class="caret"></b></a>
                             <ul class="dropdown-menu">
@@ -105,8 +97,7 @@
                             <li class="active"><a data-toggle="tab" data-target="#settings-tab-links"><i class="fa fa-link"></i> <span class="hidden-sm">链接</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-bookmarks"><i class="fa fa-bookmark"></i> <span class="hidden-sm">书签</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-history"><i class="fa fa-history"></i> <span class="hidden-sm">历史</span></a></li>
-                            <li><a data-toggle="tab" data-target="#settings-tab-baskets"><i class="fa fa-shopping-basket"></i> <span class="hidden-sm">Baskets</span></a></li>
-                            <li><a data-toggle="tab" data-target="#settings-tab-general"><i class="fa fa-star"></i> <span class="hidden-sm">General</span></a></li>
+                            <li><a data-toggle="tab" data-target="#settings-tab-general"><i class="fa fa-star"></i> <span class="hidden-sm">通用</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-style"><i class="fa fa-paint-brush"></i> <span class="hidden-sm">Style</span></a></li>
                         </ul>
                         <div class="tab-content">
@@ -212,54 +203,12 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="tab-pane form-horizontal" id="settings-tab-baskets">
-                                <div class="alert alert-warning incognito"><strong>Note:</strong> the baskets dropdown is disabled whilst in incognito mode.</div>
-                                <div class="form-group form-control-nomar-bottom">
-                                    <label class="col-sm-3 control-label">Sites</label>
-                                    <div class="col-sm-8">
-                                        <p class="form-control-static">Select websites to check counts in shopping baskets.</p>
-                                    </div>
-                                </div>
-                                <div class="form-group form-control-nomar-bottom settings-perm" data-key="amazon-uk">
-                                    <div class="col-sm-offset-3 col-sm-8">
-                                        <label class="checkbox-inline">
-                                            <input id="settings-baskets-amazon-uk" type="checkbox">
-                                            <span><i class="fa fa-amazon"></i> Amazon UK</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="form-group form-control-nomar-bottom settings-perm" data-key="amazon-usa">
-                                    <div class="col-sm-offset-3 col-sm-8">
-                                        <label class="checkbox-inline">
-                                            <input id="settings-baskets-amazon-usa" type="checkbox">
-                                            <span><i class="fa fa-amazon"></i> Amazon USA</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="form-group form-control-nomar-bottom settings-perm" data-key="ebay">
-                                    <div class="col-sm-offset-3 col-sm-8">
-                                        <label class="checkbox-inline">
-                                            <input id="settings-baskets-ebay" type="checkbox">
-                                            <span><i class="fa fa-shopping-bag"></i> eBay</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="form-group settings-perm" data-key="steam-store">
-                                    <div class="col-sm-offset-3 col-sm-8">
-                                        <label class="checkbox-inline">
-                                            <input id="settings-baskets-steam" type="checkbox">
-                                            <span><i class="fa fa-steam"></i> Steam</span>
-                                        </label>
-                                        <p class="help-block"></p>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="tab-pane form-horizontal" id="settings-tab-general">
                                 <div class="form-group">
-                                    <label for="settings-general-title" class="col-sm-3 control-label">Page title</label>
+                                    <label for="settings-general-title" class="col-sm-3 control-label">页面标题</label>
                                     <div class="col-sm-8">
                                         <input id="settings-general-title" type="text" class="form-control" placeholder="Homely">
-                                        <p class="help-block">The title as displayed in the Chrome tab.</p>
+                                        <p class="help-block">这个标题会显示在chrome的标签上</p>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -489,7 +438,6 @@
                                     <li><code>W</code> <code>B</code> &ndash; switch to bookmarks</li>
                                     <li><code>E</code> <code>A</code> &ndash; open apps dropdown</li>
                                     <li><code>R</code> <code>H</code> &ndash; open history dropdown</li>
-                                    <li><code>T</code> <code>K</code> &ndash; open baskets dropdown</li>
                                     <li><code>Y</code> <code>N</code> &ndash; open notifcations dropdown</li>
                                     <li><code>U</code> <code>S</code> &ndash; open settings dropdown (<code>Shift</code> for modal)</li>
                                     <li><code>Tab</code> <code>Shift+Tab</code> &ndash; scroll through dropdown options</li>

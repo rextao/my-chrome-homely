@@ -4,7 +4,7 @@
     "description": "基于Homely二次开发（https://github.com/OllieTerrance/Homely）",
     "version": "2.0.0",
     "author": "rextao",
-    "homepage_url": "",
+    "homepage_url": "https://github.com/rextao/my-chrome-homely",
     "incognito": "split",
     "offline_enabled": true,
     "chrome_url_overrides": {
@@ -19,7 +19,8 @@
     },
     "permissions": [
         "fontSettings",
-        "storage"
+        "storage",
+        "management"
     ],
     "optional_permissions": [
         "bookmarks",

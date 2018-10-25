@@ -164,12 +164,6 @@ $(document).ready(function () {
       "enable": false,
       "limit": 10
     },
-    "baskets": {
-      "amazon-uk": false,
-      "amazon-usa": false,
-      "ebay": false,
-      "steam": false
-    },
     "general": {
       "title": manif.name,
       "keyboard": false,
@@ -1380,157 +1374,6 @@ $(document).ready(function () {
       });
     }
     /*
-    Baskets: poll websites for shopping cart sizes
-    */
-    // refresh baskets
-    var basketRefresh = function basketRefresh() {
-      // disable if no connection
-      if (!navigator.onLine) {
-        var refreshLink = $("<a/>").attr("id", "baskets-refresh").append(fa("refresh")).append(" Check again").off("click").click(function (e) {
-          $("#baskets-list").empty();
-          basketRefresh();
-          e.stopPropagation();
-        });
-        $("#baskets-list").append($("<li/>").addClass("disabled").append($("<a/>").append(fa("power-off")).append(" No connection")))
-          .append($("<li/>").addClass("divider"))
-          .append($("<li/>").append(refreshLink));
-        $("#menu-baskets").show();
-        return;
-      }
-      // add to list if permission available
-      var pendingPerm = 0;
-      var has = false;
-      var refreshLink;
-      var pendingCount = function pendingCount() {
-        // only if at least one, once all complete
-        if (--pendingPerm || !has) return;
-        refreshLink = $("<a/>").attr("id", "baskets-refresh").append(fa("refresh fa-spin")).append(" Refreshing...").click(function (e) {
-          e.stopPropagation();
-        });
-        $("#baskets-list").append($("<li/>").addClass("divider"))
-          .append($("<li/>").addClass("disabled").append(refreshLink));
-        $("#menu-baskets").show();
-      };
-      // update total count on response
-      var pendingAjax = 0;
-      var total = 0;
-      var ajaxCount = function ajaxCount(count) {
-        var thisTotal = 0;
-        if (!isNaN(count)) thisTotal += count;
-        if (thisTotal) {
-          total += thisTotal;
-          $("#baskets-title .badge").text(total);
-        }
-        // only once all complete
-        if (--pendingAjax) return;
-        refreshLink.empty().append(fa("refresh")).append(" Refresh").off("click").click(function (e) {
-          $("#baskets-title .badge").text("0");
-          $("#baskets-list").empty();
-          basketRefresh();
-          e.stopPropagation();
-        });
-        refreshLink.parent().removeClass("disabled");
-      };
-      /*
-      handlers = {
-          settings key: {
-              title: option label,
-              icon: option icon,
-              api: URL to query for count,
-              count: function(basket, resp) {
-                  return count value
-              }
-          },
-          ...
-      }
-      */
-      var handlers = {
-        "amazon-uk": {
-          title: "Amazon UK",
-          icon: "amazon",
-          api: "https://www.amazon.co.uk/gp/cart/view.html",
-          count: function (basket, resp) {
-            return parseInt($("#nav-cart-count", resp).text());
-          }
-        },
-        "amazon-usa": {
-          title: "Amazon USA",
-          icon: "amazon",
-          api: "https://www.amazon.com/gp/cart/view.html",
-          count: function (basket, resp) {
-            return parseInt($("#nav-cart-count", resp).text());
-          }
-        },
-        "ebay": {
-          title: "eBay",
-          icon: "shopping-bag",
-          api: "http://cart.payments.ebay.co.uk/sc/view",
-          count: function (basket, resp) {
-            var text = $(".cartsummarytitle", resp).next().text();
-            if (text === "") return 0;
-            var match = /[0-9]+/.exec(text);
-            return match ? parseInt(match[0]) : NaN;
-          }
-        },
-        "steam": {
-          title: "Steam",
-          icon: "steam",
-          api: "https://store.steampowered.com/cart/",
-          count: function (basket, resp) {
-            return parseInt($("#cart_item_count_value", resp).text());
-          }
-        }
-      };
-      $.each(settings.baskets, function (key, basket) {
-        if (basket) {
-          // check permissions exist
-          pendingPerm++;
-          has = true;
-          chrome.permissions.contains({
-            origins: ajaxPerms[key]
-          }, function (has) {
-            if (has) {
-              var handle = handlers[key];
-              // add menu item
-              var link = $("<a/>").attr("href", handle.api).append(fa(handle.icon)).append(" ")
-                .append($("<span/>").addClass("title").text(handle.title));
-              $("#baskets-list").append($("<li/>").append(link));
-              pendingAjax++;
-              $.ajax({
-                url: handle.api,
-                success: function (resp, stat, xhr) {
-                  if (typeof(resp) === "string") {
-                    resp = resp.replace(/<img[\S\s]*?>/g, "").replace(/<script[\S\s]*?>[\S\s]*?<\/script>/g, "");
-                    resp = resp.replace(/on[a-z]*="[\S\s]*?"/g, "");
-                  }
-                  var count = handle.count(basket, resp);
-                  link.prepend($("<span/>").addClass("badge pull-right").text(isNaN(count) ? "?" : count));
-                  ajaxCount(typeof(basket.include) === "boolean" && !basket.include ? 0 : count);
-                },
-                error: function (xhr, stat, err) {
-                  link.prepend($("<span/>").addClass("badge pull-right").text("?"));
-                  ajaxCount(0);
-                }
-              });
-              pendingCount();
-            } else {
-              // permission not available
-              if (typeof(basket.enable) === "string") {
-                basket.enable = false;
-              } else {
-                for (var x in basket.enable) {
-                  basket.enable[x] = false;
-                }
-              }
-              pendingPerm--;
-            }
-          });
-        }
-      });
-    };
-    // only show if enabled and not in incognito
-    if (!chrome.extension.inIncognitoContext) basketRefresh();
-    /*
     Settings: modal to customize links and options
     */
     // set to current data
@@ -1579,34 +1422,6 @@ $(document).ready(function () {
         .parent().toggleClass("text-muted", !settings.history["enable"]);
       $("#settings-history-limit-value").text(settings.history["limit"])
         .parent().toggleClass("text-muted", !settings.history["enable"]);
-      $("#settings-notifs-facebook-notifs").prop("checked", settings.notifs["facebook"].enable.notifs);
-      $("#settings-notifs-facebook-messages").prop("checked", settings.notifs["facebook"].enable.messages);
-      $("#settings-notifs-facebook-friends").prop("checked", settings.notifs["facebook"].enable.friends);
-      $("#settings-notifs-github-enable").prop("checked", settings.notifs["github"].enable);
-      $("#settings-notifs-gmail-enable").prop("checked", settings.notifs["gmail"].enable);
-      $("#settings-notifs-gmail-accounts").prop("disabled", !settings.notifs["gmail"].enable).val(settings.notifs["gmail"].accounts.join(", "));
-      $("#settings-notifs-linkedin-messages").prop("checked", settings.notifs["linkedin"].enable.messages);
-      $("#settings-notifs-linkedin-notifs").prop("checked", settings.notifs["linkedin"].enable.notifs);
-      $("#settings-notifs-linkedin-invites").prop("checked", settings.notifs["linkedin"].enable.invites);
-      $("#settings-notifs-outlook-enable").prop("checked", settings.notifs["outlook"].enable);
-      $("#settings-notifs-reddit-enable").prop("checked", settings.notifs["reddit"].enable);
-      $("#settings-notifs-steam-comments").prop("checked", settings.notifs["steam"].enable.comments);
-      $("#settings-notifs-steam-inventory").prop("checked", settings.notifs["steam"].enable.inventory);
-      $("#settings-notifs-steam-invites").prop("checked", settings.notifs["steam"].enable.invites);
-      $("#settings-notifs-steam-gifts").prop("checked", settings.notifs["steam"].enable.gifts);
-      $("#settings-notifs-steam-messages").prop("checked", settings.notifs["steam"].enable.messages);
-      $("#settings-notifs-ticktick-enable").prop("checked", settings.notifs["ticktick"].enable);
-      $("#settings-notifs-ticktick-due").prop("checked", settings.notifs["ticktick"].due)
-        .prop("disabled", !settings.notifs["ticktick"].enable)
-        .parent().toggleClass("text-muted", !settings.notifs["ticktick"].enable);
-      $("#settings-notifs-ticktick-include").prop("checked", settings.notifs["ticktick"].include)
-        .prop("disabled", !settings.notifs["ticktick"].enable)
-        .parent().toggleClass("text-muted", !settings.notifs["ticktick"].enable);
-      $("#settings-notifs-twitter-enable").prop("checked", settings.notifs["twitter"].enable);
-      $("#settings-baskets-amazon-uk").prop("checked", settings.baskets["amazon-uk"]);
-      $("#settings-baskets-amazon-usa").prop("checked", settings.baskets["amazon-usa"]);
-      $("#settings-baskets-ebay").prop("checked", settings.baskets["ebay"]);
-      $("#settings-baskets-steam").prop("checked", settings.baskets["steam"]);
       // highlight notif/basket permissions status
       $(".settings-perm").each(function (i, group) {
         var key = $(group).data("key");
@@ -1896,15 +1711,6 @@ $(document).ready(function () {
         });
       }
       var revokeError = false;
-      settings.baskets = {
-        "amazon-uk": $("#settings-baskets-amazon-uk").prop("checked"),
-        "amazon-usa": $("#settings-baskets-amazon-usa").prop("checked"),
-        "ebay": $("#settings-baskets-ebay").prop("checked"),
-        "steam": $("#settings-baskets-steam").prop("checked")
-      };
-      $.each(settings.baskets, function (key, basket) {
-        if (!basket) revoke(key === "steam" ? "steam-store" : key);
-      });
       if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
       settings.general["title"] = $("#settings-general-title").val();
       settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
@@ -2107,33 +1913,7 @@ $(document).ready(function () {
               $("#history-title").click();
             });
           }
-          Mousetrap.bind(["k", "t"], function (e, key) {
-            if (!$("#baskets-title").parent().hasClass("open")) closeDropdowns();
-            $("#baskets-title").click();
-          }).bind("shift+k", function (e, key) {
-            if (!$("#baskets-title").parent().hasClass("open")) {
-              closeDropdowns();
-              $("#baskets-title").click();
-            }
-            $("#baskets-refresh").click();
-          }).bind("shift+alt+k", function (e, key) {
-            $("#baskets-list a").each(function (i, link) {
-              if (parseInt($(".badge", link).text()) > 0) chrome.tabs.create({url: link.href, active: false});
-            });
-          }).bind(["n", "y"], function (e, key) {
-            if (!$("#notifs-title").parent().hasClass("open")) closeDropdowns();
-            $("#notifs-title").click();
-          }).bind("shift+n", function (e, key) {
-            if (!$("#notifs-title").parent().hasClass("open")) {
-              closeDropdowns();
-              $("#notifs-title").click();
-            }
-            $("#notifs-refresh").click();
-          }).bind("shift+alt+n", function (e, key) {
-            $("#notifs-list a").each(function (i, link) {
-              if (parseInt($(".badge", link).text()) > 0) chrome.tabs.create({url: link.href, active: false});
-            });
-          }).bind(["s", "u"], function (e, key) {
+          Mousetrap.bind(["s", "u"], function (e, key) {
             if (!$("#settings-title").parent().hasClass("open")) closeDropdowns();
             $("#settings-title").click();
           }).bind(["shift+s", "shift+y"], function (e, key) {
