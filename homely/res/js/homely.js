@@ -1,7 +1,4 @@
 $(document).ready(function () {
-  let style1 = new SettingStyle();
-  style1.init();
-
   // helper methods
   var cap = function cap(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -229,6 +226,14 @@ $(document).ready(function () {
     settings = $.extend(true, {}, settings, store);
     // apply custom styles
     document.title = settings.general["title"];
+    // setting 初始化
+    const settingStyle = new SettingStyle(settings.style);
+
+    /***********************设置（样式）*********************************/
+    // 请求获取字体
+    settingStyle.init();
+
+
     var css = [];
     if (settings.style["font"]) {
       css.push("* {\n"
@@ -1369,9 +1374,12 @@ $(document).ready(function () {
     */
     // set to current data
     /**
-     *
+     * 填充设置
      */
     var populateSettings = function populateSettings() {
+      settingStyle.populate();
+
+
       $("#settings-links-edit-menu").prop("checked", settings.links["edit"].menu);
       $("#settings-links-edit-dragdrop").prop("checked", settings.links["edit"].dragdrop);
       $("#settings-links-behaviour-dropdownmiddle").prop("checked", settings.links["behaviour"].dropdownmiddle);
@@ -1461,7 +1469,7 @@ $(document).ready(function () {
       $("#settings-general-weather-celsius").html("&deg;" + (settings.general["weather"].celsius ? "C" : "F"))
         .prop("disabled", !settings.general["weather"].show);
       $("#settings-general-proxy").prop("checked", settings.general["proxy"]);
-      $("#settings-style-font").val(settings.style["font"]);
+      // $("#settings-style-font").val(settings.style["font"]);
       $("#settings-style-fluid").prop("checked", settings.style["fluid"]);
       $("#settings-style-topbar-fix").prop("checked", settings.style["topbar"].fix);
       $("#settings-style-topbar-dark").prop("checked", settings.style["topbar"].dark);
@@ -1485,14 +1493,7 @@ $(document).ready(function () {
         $("#settings-style-background-image").prop("placeholder", "(default)");
         break;
     }
-    /***********************设置（样式）*********************************/
-    // 请求获取字体
-    chrome.fontSettings.getFontList(function fontsCallback(fonts) {
-      for (var i in fonts) {
-        $("#settings-style-font").append($("<option/>").text(fonts[i].displayName));
-      }
-      $("#settings-style-font").val(settings.style["font"]);
-    });
+
     $(".ext-name").text(manif.name);
     $(".ext-ver").text(manif.version);
     // reset modal on show
@@ -1666,6 +1667,10 @@ $(document).ready(function () {
     });
     /*******************modal保存按钮*************************************************/
     $("#settings-save").click(function (e) {
+
+      settingStyle.save();
+
+
       $("#settings-alerts").empty();
       $("#settings-save").prop("disabled", true).empty().append(fa("spinner fa-spin", false)).append(" Saving...");
       settings.links["edit"] = {
@@ -1734,7 +1739,7 @@ $(document).ready(function () {
       // if (!settings.general["weather"].show) revoke("weather");
       settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
       // if (!settings.general["proxy"]) revoke("proxy");
-      settings.style["font"] = $("#settings-style-font").val();
+      // settings.style["font"] = $("#settings-style-font").val();
       settings.style["fluid"] = $("#settings-style-fluid").prop("checked");
       settings.style["topbar"] = {
         fix: $("#settings-style-topbar-fix").prop("checked"),
