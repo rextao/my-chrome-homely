@@ -41,7 +41,7 @@
                                 <li><a id="settings-toggle" data-toggle="modal" data-target="#settings"><i class="fa fa-fw fa-magic"></i> 个性化</a></li>
                                 <li class="divider"></li>
                                 <li><a id="settings-import"><i class="fa fa-fw fa-arrow-left"></i> 导入</a></li>
-                                <li><a id="settings-export" download="homely.json"><i class="fa fa-fw fa-arrow-right"></i>导出</a></li>
+                                <li><a id="settings-export" download="homely.json"><i class="fa fa-fw fa-arrow-right"></i> 导出</a></li>
                                 <li class="divider"></li>
                                 <li><a id="about-toggle" data-toggle="modal" data-target="#about"><i class="fa fa-fw fa-home"></i> About <span class="ext-name"></span></a></li>
                             </ul>
@@ -98,7 +98,7 @@
                             <li><a data-toggle="tab" data-target="#settings-tab-bookmarks"><i class="fa fa-bookmark"></i> <span class="hidden-sm">书签</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-history"><i class="fa fa-history"></i> <span class="hidden-sm">历史</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-general"><i class="fa fa-star"></i> <span class="hidden-sm">通用</span></a></li>
-                            <li><a data-toggle="tab" data-target="#settings-tab-style"><i class="fa fa-paint-brush"></i> <span class="hidden-sm">Style</span></a></li>
+                            <li><a data-toggle="tab" data-target="#settings-tab-style"><i class="fa fa-paint-brush"></i> <span class="hidden-sm">样式</span></a></li>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active form-horizontal" id="settings-tab-links">
@@ -301,32 +301,32 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-3 control-label">Layout</label>
+                                    <label class="col-sm-3 control-label">布局</label>
                                     <div class="col-sm-8">
                                         <label class="checkbox-inline">
                                             <input id="settings-style-fluid" type="checkbox">
-                                            <span>Fluid width</span>
+                                            <span>流式布局</span>
                                         </label>
-                                        <p class="help-block">With a fluid layout, links and bookmarks will widen to fill the page.</p>
+                                        <p class="help-block">流体布局（.container-fluid （100% 宽度））下，链接和书签将加宽以填充页面。</p>
                                     </div>
                                     <div class="col-sm-offset-3 col-sm-8">
                                         <label class="checkbox-inline">
                                             <input id="settings-style-topbar-fix" type="checkbox">
-                                            <span>Fixed top bar</span>
+                                            <span>固定顶部导航</span>
                                         </label>
                                         <label class="checkbox-inline">
                                             <input id="settings-style-topbar-dark" type="checkbox">
-                                            <span>Use dark bar</span>
+                                            <span>设置导航黑色</span>
                                         </label>
                                         <label class="checkbox-inline">
                                             <input id="settings-style-topbar-labels" type="checkbox">
-                                            <span>Show labels</span>
+                                            <span>显示标签(顶部导航文字显示)</span>
                                         </label>
-                                        <p class="help-block">A fixed top bar will remain at the top as the page is scrolled.</p>
+                                        <p class="help-block">当页面滚动时，固定的顶部导航将保持在顶部。</p>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-3 control-label">Panel style</label>
+                                    <label class="col-sm-3 control-label">面板样式</label>
                                     <div class="col-sm-8">
                                         <div id="settings-style-panel" class="btn-group btn-group-justified" data-toggle="buttons">
                                             <label class="btn btn-default">
@@ -358,21 +358,21 @@
                                                 <i class="fa fa-check"></i>
                                             </label>
                                         </div>
-                                        <p class="help-block">The colour scheme used for links and bookmarks blocks.</p>
+                                        <p class="help-block">用于链接和书签块的header配色方案</p>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="settings-style-background-image" class="col-sm-3 control-label">Background</label>
+                                    <label for="settings-style-background-image" class="col-sm-3 control-label">背景</label>
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input id="settings-style-background-image" type="text" class="form-control">
                                             <span class="input-group-btn">
                                                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
                                                 <ul class="dropdown-menu pull-right">
-                                                    <li><a id="settings-style-background-choose"><i class="fa fa-fw fa-search"></i> Choose file...</a></li>
+                                                    <li><a id="settings-style-background-choose"><i class="fa fa-fw fa-search"></i> 选择文件...</a></li>
                                                     <li class="divider"></li>
-                                                    <li><a id="settings-style-background-none"><i class="fa fa-fw fa-times"></i> No image (blank)</a></li>
-                                                    <li><a id="settings-style-background-default"><i class="fa fa-fw fa-undo"></i> Reset to default</a></li>
+                                                    <li><a id="settings-style-background-none"><i class="fa fa-fw fa-times"></i> 无图模式 (空白)</a></li>
+                                                    <li><a id="settings-style-background-default"><i class="fa fa-fw fa-undo"></i> 重置为默认值</a></li>
                                                 </ul>
                                             </span>
                                         </div>
@@ -395,20 +395,20 @@
                                             <input id="settings-style-background-stretch" type="checkbox" class="settings-style-background-check">
                                             <span>Stretch</span>
                                         </label>
-                                        <p class="help-block">Select a file from your computer, or enter a data URI or remote link to an image.  Note that remote backgrounds will not load when working offline.</p>
+                                        <p class="help-block">输入框内容直接填充在background-img:url()中，选项分别代表：background-repeat，background-position:center，background-attachment:fixed， background-size:cover。</p>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="settings-style-customcss-content" class="col-sm-3 control-label">Custom CSS</label>
+                                    <label for="settings-style-customcss-content" class="col-sm-3 control-label">自定义css</label>
                                     <div class="col-sm-8 form-control-pad-bottom">
                                         <label class="checkbox-inline">
                                             <input id="settings-style-customcss-enable" type="checkbox">
-                                            <span>Use a custom stylesheet</span>
+                                            <span>使用自定义样式表</span>
                                         </label>
                                     </div>
                                     <div class="col-sm-offset-3 col-sm-8">
                                         <textarea id="settings-style-customcss-content" class="form-control input-mono" rows="10"></textarea>
-                                        <p class="help-block">Tweak any part of the page with custom style rules.</p>
+                                        <p class="help-block">用自定义样式规则对页面的任何部分进行调整。</p>
                                     </div>
                                 </div>
                             </div>
