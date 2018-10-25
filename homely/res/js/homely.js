@@ -198,12 +198,14 @@ $(document).ready(function () {
         "labels": true
       },
       "panel": "default",
+      // setting-style-background下拉框重置默认，需要在#settings-style-background-default的点击事件中更改
+      // 因为如下值会因为页面选择而改变
       "background": {
         "image": "../img/bg.png",
-        "repeat": true,
+        "repeat": false,
         "centre": true,
         "fixed": false,
-        "stretch": false
+        "stretch": true
       },
       "customcss": {
         "enable": false,
@@ -230,41 +232,7 @@ $(document).ready(function () {
     const settingStyle = new SettingStyle(settings.style);
 
     /***********************设置（样式）*********************************/
-    // 请求获取字体
     settingStyle.init();
-
-
-    var css = [];
-    if (settings.style["font"]) {
-      css.push("* {\n"
-        + "    font-family: '" + settings.style["font"] + "';\n"
-        + "}");
-    }
-    $("body").addClass(settings.style["fluid"] ? "container-fluid" : "container");
-    if (settings.style["topbar"].fix) {
-      $("body").addClass("topbar-fix");
-      $("nav").addClass("navbar-fixed-top");
-      $("#menu-collapse").addClass("collapse navbar-collapse");
-      $("#menu-collapse-toggle").show();
-    }
-    if (settings.style["topbar"].dark) {
-      $("nav").removeClass("navbar-default").addClass("navbar-inverse");
-    }
-    if (settings.style["background"].image) {
-      css.push("html {\n"
-        + "    background-image: url(" + settings.style["background"].image + ");\n"
-        + "    background-repeat: " + (settings.style["background"].repeat ? "" : "no-") + "repeat;\n"
-        + "    background-position: " + (settings.style["background"].centre ? "center" : "initial") + ";\n"
-        + "    background-attachment: " + (settings.style["background"].fixed ? "fixed" : "initial") + ";\n"
-        + "    background-size: " + (settings.style["background"].stretch ? "cover" : "auto") + ";\n"
-        + "}");
-    }
-    if (css.length) {
-      $(document.head).append($("<style/>").html(css.join("\n")));
-    }
-    if (settings.style["customcss"].enable) {
-      $(document.head).append($("<style/>").html(settings.style["customcss"].content));
-    }
     // show current time in navbar
     if (settings.general["clock"].show) {
       var time = $("<div/>").attr("id", "time").addClass("navbar-brand");
@@ -1469,21 +1437,7 @@ $(document).ready(function () {
       $("#settings-general-weather-celsius").html("&deg;" + (settings.general["weather"].celsius ? "C" : "F"))
         .prop("disabled", !settings.general["weather"].show);
       $("#settings-general-proxy").prop("checked", settings.general["proxy"]);
-      // $("#settings-style-font").val(settings.style["font"]);
-      $("#settings-style-fluid").prop("checked", settings.style["fluid"]);
-      $("#settings-style-topbar-fix").prop("checked", settings.style["topbar"].fix);
-      $("#settings-style-topbar-dark").prop("checked", settings.style["topbar"].dark);
-      $("#settings-style-topbar-labels").prop("checked", settings.style["topbar"].labels);
-      $("#settings-style-panel label.btn-" + settings.style["panel"]).click();
-      $("#settings-style-background-image").data("val", settings.style["background"].image).prop("placeholder", "(unchanged)");
-      $("#settings-style-background-repeat").prop("checked", settings.style["background"].repeat);
-      $("#settings-style-background-centre").prop("checked", settings.style["background"].centre);
-      $("#settings-style-background-fixed").prop("checked", settings.style["background"].fixed);
-      $("#settings-style-background-stretch").prop("checked", settings.style["background"].stretch);
-      $(".settings-style-background-check").prop("disabled", !settings.style["background"].image)
-        .next().toggleClass("text-muted", !settings.style["background"].image);
-      $("#settings-style-customcss-enable").prop("checked", settings.style["customcss"].enable);
-      $("#settings-style-customcss-content").prop("disabled", !settings.style["customcss"].enable).val(settings.style["customcss"].content);
+
     }
     switch (settings.style["background"].image) {
       case "":
@@ -1624,6 +1578,7 @@ $(document).ready(function () {
       $(this).data("val", "").prop("placeholder", "(none)");
       $(".settings-style-background-check").prop("disabled", !$(this).val()).next().toggleClass("text-muted", !$(this).val());
     });
+    /***********************setting-style-background下拉框****************************************************************/
     $("#settings-style-background-choose").click(function (e) {
       // trigger hidden input field
       $("#settings-alerts").empty();
@@ -1652,13 +1607,14 @@ $(document).ready(function () {
       $("#settings-style-background-image").data("val", "").prop("placeholder", "(none)").val("");
       $(".settings-style-background-check").prop("disabled", true).next().addClass("text-muted");
     });
+
     // reset to default stripes
     $("#settings-style-background-default").click(function (e) {
       $("#settings-style-background-image").data("val", "../img/bg.png").prop("placeholder", "(default)").val("");
-      $("#settings-style-background-repeat").prop("checked", true);
+      $("#settings-style-background-repeat").prop("checked", false);
       $("#settings-style-background-centre").prop("checked", true);
       $("#settings-style-background-fixed").prop("checked", false);
-      $("#settings-style-background-stretch").prop("checked", false);
+      $("#settings-style-background-stretch").prop("checked", true);
       $(".settings-style-background-check").prop("disabled", false).next().removeClass("text-muted");
     });
     // custom CSS editor
@@ -1740,24 +1696,13 @@ $(document).ready(function () {
       settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
       // if (!settings.general["proxy"]) revoke("proxy");
       // settings.style["font"] = $("#settings-style-font").val();
-      settings.style["fluid"] = $("#settings-style-fluid").prop("checked");
-      settings.style["topbar"] = {
-        fix: $("#settings-style-topbar-fix").prop("checked"),
-        dark: $("#settings-style-topbar-dark").prop("checked"),
-        labels: $("#settings-style-topbar-labels").prop("checked")
-      };
-      settings.style["panel"] = $("#settings-style-panel label.active input").val();
-      settings.style["background"] = {
-        image: $("#settings-style-background-image").val() ? $("#settings-style-background-image").val() : $("#settings-style-background-image").data("val"),
-        repeat: $("#settings-style-background-repeat").prop("checked"),
-        centre: $("#settings-style-background-centre").prop("checked"),
-        fixed: $("#settings-style-background-fixed").prop("checked"),
-        stretch: $("#settings-style-background-stretch").prop("checked")
-      };
-      settings.style["customcss"] = {
-        enable: $("#settings-style-customcss-content").val() && $("#settings-style-customcss-enable").prop("checked"),
-        content: $("#settings-style-customcss-content").val()
-      };
+      // settings.style["fluid"] = $("#settings-style-fluid").prop("checked");
+      // settings.style["topbar"] = {
+      //   fix: $("#settings-style-topbar-fix").prop("checked"),
+      //   dark: $("#settings-style-topbar-dark").prop("checked"),
+      //   labels: $("#settings-style-topbar-labels").prop("checked")
+      // };
+
       $("#settings").on("hide.bs.modal", function (e) {
         e.preventDefault();
       });
