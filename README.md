@@ -10,3 +10,6 @@
 # 备注
 1. 可以通过原作者notice与basket，看看怎么获取通知和购物车信息（此功能未测试）
 1. 如何获取chrome字体：chrome.fontSettings.getFontList
+1. bootstrap利用radio实现的颜色面板选择器
+1. jQuery利用prop控制复选框.prop("checked", true);
+1. 自定义css，即是将css.val()后添加到style中，然后append到head
