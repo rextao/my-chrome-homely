@@ -154,6 +154,8 @@ $(document).ready(function () {
     },
     "bookmarks": {
       "enable": false,
+      // 布局方式，folder，文件夹式，扁平化布局
+      "layout":"flatten",
       "bookmarklets": true,
       "foldercontents": true,
       "split": false,
@@ -230,6 +232,7 @@ $(document).ready(function () {
     document.title = settings.general["title"];
     /***********************setting 初始化*********************************/
     const settingBookmarks = new SettingBookmarks(settings.bookmarks);
+    settingBookmarks.init();
     const settingGeneral = new SettingGeneral(settings.general);
     // 设置（样式）
     const settingStyle = new SettingStyle(settings.style);
@@ -1128,6 +1131,80 @@ $(document).ready(function () {
             });
           }
         };
+
+
+
+
+
+
+        var renderPanelBody = function renderTwo(node, awrapper) {
+          let html  = '';
+          node.forEach(function (item,i) {
+            // 循环书签栏
+            if(item.url){
+              // 页面每条多余12个字不好看
+              let title = item.title.slice(0,12);
+              // 避免无名字的标签，用一个font图标表示
+              const fonts =['trophy','tree','tint','sign-language','globe','gift'];
+              if(!title){
+                title = `<i class="fa fa-${fonts[i % 6]}"></i>`;
+              }
+              if(awrapper){
+                html += `<li><a href="${item.url}" >${title}</a></li>`;
+              }else {
+                html += `<a class="btn btn-block btn-default" href="${item.url}" >${title}</a>`
+              }
+
+            }else {
+              html += `<div class="btn-group btn-block">
+                           <button class="btn btn-block btn-default dropdown-toggle" data-toggle="dropdown">格式化 <b class="caret"></b></button>
+                           <ul class="dropdown-menu">
+                                ${renderPanelBody(item.children,true)}
+                            </ul>
+                        </div>`
+            }
+          });
+          return html;
+        };
+
+        var render = function render(mainbookmark) {
+          const html = `<div class="col-lg-2 col-md-3 col-sm-4 col-xs-6" >
+                        <div class="panel panel-default sortable">`;
+          const bm = [];
+          $(mainbookmark.children).each(function (i, item) {
+            let panel = `<div class="panel-heading">${item.title}</div>`;
+            if(item.url){
+              bm.push(item);
+            }else {
+              panel += `<div class="panel-body">
+                            ${renderSecond(item.children)}
+                        </div>`;
+              panel = `${html}${panel}</div></div>`;
+              $('#bookmarks').append(panel);
+            }
+          });
+          const bmHtml = `${html}
+                            <div class="panel-heading">${mainbookmark.title}</div>
+                            <div class="panel-body">
+                                ${renderSecond(bm)}
+                            </div>
+                          </div></div>`;
+          $('#bookmarks').prepend(bmHtml);
+        };
+
+        var populateBookmarksMy = function populateBookmarksMy(root) {
+
+        };
+
+
+
+
+
+
+
+
+
+
         // display a folder in the bookmarks pane
         var populateBookmarks = function populateBookmarks(root) {
           // clear current list
@@ -1178,7 +1255,8 @@ $(document).ready(function () {
         chrome.bookmarks.getTree(function bookmarksCallback(tree) {
           var root = processBookmarks(tree[0]);
           root.title = "Bookmarks";
-          populateBookmarks(root);
+          populateBookmarksMy(root);
+          // populateBookmarks(root);
           if (settings.bookmarks["merge"]) {
             $("#bookmarks").fadeIn();
           } else {
@@ -1359,8 +1437,7 @@ $(document).ready(function () {
       $("#settings-bookmarks-foldercontents").prop("checked", settings.bookmarks["foldercontents"]);
       $("#settings-bookmarks-split").prop("checked", settings.bookmarks["split"]);
       $("#settings-bookmarks-merge").prop("checked", settings.bookmarks["merge"]);
-      $("#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, #settings-bookmarks-merge")
-        .prop("disabled", !settings.bookmarks["enable"]).parent().toggleClass("text-muted", !settings.bookmarks["enable"]);
+
       $("#settings-bookmarks-above").prop("checked", settings.bookmarks["above"])
         .prop("disabled", !(settings.bookmarks["enable"] && settings.bookmarks["merge"]))
         .parent().toggleClass("text-muted", !(settings.bookmarks["enable"] && settings.bookmarks["merge"]));
@@ -1445,32 +1522,7 @@ $(document).ready(function () {
       populateSettings();
       $($("#settings-tabs a")[0]).click();
     });
-    $("#settings-bookmarks-enable").change(function (e) {
-      $("#settings-alerts").empty();
-      // grant bookmarks permissions
-      if (this.checked) {
-        chrome.permissions.request({
-          permissions: ["bookmarks"]
-        }, function (success) {
-          if (success) {
-            $(".settings-perm-bookmarks").removeClass("has-warning").addClass("has-success");
-            $("#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, "
-              + "#settings-bookmarks-merge")
-              .prop("disabled", false).parent().removeClass("text-muted");
-            $("#settings-bookmarks-above").prop("disabled", !$("#settings-bookmarks-merge").prop("checked"))
-              .parent().toggleClass("text-muted", !$("#settings-bookmarks-merge").prop("checked"));
-          } else {
-            var text = "Permission denied for bookmarks.";
-            $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
-            $(this).prop("checked", false);
-          }
-        });
-      } else {
-        $("#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, "
-          + "#settings-bookmarks-merge, #settings-bookmarks-above")
-          .prop("disabled", true).parent().addClass("text-muted");
-      }
-    });
+    $("#settings-bookmarks-enable").change(settingBookmarks.enableChangeHandler);
     $("#settings-bookmarks-merge").change(function (e) {
       $("#settings-bookmarks-above").prop("disabled", !($("#settings-bookmarks-enable").prop("checked") && this.checked))
         .parent().toggleClass("text-muted", !($("#settings-bookmarks-enable").prop("checked") && this.checked));
