@@ -229,10 +229,11 @@ $(document).ready(function () {
     // apply custom styles
     document.title = settings.general["title"];
     /***********************setting 初始化*********************************/
+    const settingBookmarks = new SettingBookmarks(settings.bookmarks);
+    const settingGeneral = new SettingGeneral(settings.general);
     // 设置（样式）
     const settingStyle = new SettingStyle(settings.style);
     settingStyle.init();
-    const settingGeneral = new SettingGeneral(settings.general);
 
     // show current time in navbar
     if (settings.general["clock"].show) {
@@ -1346,24 +1347,14 @@ $(document).ready(function () {
      * 填充设置
      */
     var populateSettings = function populateSettings() {
-      settingStyle.populate();
+      settingBookmarks.populate();
       settingGeneral.populate();
-
+      settingStyle.populate();
       $("#settings-links-edit-menu").prop("checked", settings.links["edit"].menu);
       $("#settings-links-edit-dragdrop").prop("checked", settings.links["edit"].dragdrop);
       $("#settings-links-behaviour-dropdownmiddle").prop("checked", settings.links["behaviour"].dropdownmiddle);
-      $("#settings-bookmarks-enable").prop("checked", settings.bookmarks["enable"]);
-      // highlight bookmarks permission status
-      chrome.permissions.contains({
-        permissions: ["bookmarks"]
-      }, function (has) {
-        if (has) {
-          $(".settings-perm-bookmarks").addClass("has-success");
-        } else {
-          $(".settings-perm-bookmarks").addClass("has-warning");
-          $("#settings-bookmarks-enable").prop("checked", false);
-        }
-      });
+
+
       $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
       $("#settings-bookmarks-foldercontents").prop("checked", settings.bookmarks["foldercontents"]);
       $("#settings-bookmarks-split").prop("checked", settings.bookmarks["split"]);
@@ -1619,6 +1610,8 @@ $(document).ready(function () {
     });
     /*******************setting 点击保存按钮*************************************************/
     $("#settings-save").click(function (e) {
+      // setting书签
+      settingBookmarks.save();
       // setting通用
       settingGeneral.setTitleName(manif.name);// 避免调用save传入过多参数
       settingGeneral.save();
@@ -1632,7 +1625,7 @@ $(document).ready(function () {
         dragdrop: $("#settings-links-edit-dragdrop").prop("checked")
       };
       settings.links["behaviour"].dropdownmiddle = $("#settings-links-behaviour-dropdownmiddle").prop("checked");
-      settings.bookmarks["enable"] = $("#settings-bookmarks-enable").prop("checked");
+
       if (!settings.bookmarks["enable"]) {
         chrome.permissions.remove({
           permissions: ["bookmarks"]
