@@ -7,8 +7,68 @@ const SettingBookmarks = function (bookmarks) {
   this.bookmarks = bookmarks;
 };
 SettingBookmarks.prototype = {
-  init() {
-
+  init(style, ctrlDown) {
+    var bookmarksCallbacks = [];
+    const that = this;
+    if (this.bookmarks["enable"]) {
+      chrome.permissions.contains({
+        permissions: ["bookmarks"]
+      }, function (has) {
+        if (!has) {
+          that.bookmarks["enable"] = false;
+          return;
+        }
+        // switch to bookmarks page
+        $("#menu-bookmarks").click(function (e) {
+          $(".navbar-right li").removeClass("active");
+          $(this).addClass("active");
+          $(".main").hide();
+          $("#bookmarks").show();
+        });
+        // show split pane if enabled
+        if (that.bookmarks["split"]) {
+          $("#bookmarks-block").before($("<div/>").attr("id", "bookmarks-block-folders").addClass("panel-body"));
+          $("#bookmarks-block").before($("<hr/>"));
+        }
+        // pre-process the bookmark tree to add parent references
+        var processBookmarks = function processBookmarks(root) {
+          for (var i in root.children) {
+            root.children[i].parent = root;
+            if (root.children[i].children) processBookmarks(root.children[i]);
+          }
+          return root;
+        };
+        // request tree from Bookmarks API
+        chrome.bookmarks.getTree(function bookmarksCallback(tree) {
+          var root = processBookmarks(tree[0]);
+          root.title = "Bookmarks";
+          const bookmarks = new Bookmarks(that.bookmarks,style, ctrlDown,root);
+          const layout = that.bookmarks['layout'];
+          switch (layout) {
+            case 'folder':
+              bookmarks.layoutFolder();
+              break;
+            case 'flatten':
+              bookmarks.layoutFlatten();
+              break;
+            case 'dial':
+              bookmarks.layoutDial(6);
+              break;
+          }
+          if (that.bookmarks["merge"]) {
+            $("#bookmarks").fadeIn();
+          } else {
+            $("#menu-bookmarks").show();
+          }
+          // bookmark search
+          bookmarks.searchEventInit();
+        });
+        // return any pending callbacks
+        for (var i in bookmarksCallbacks) {
+          bookmarksCallbacks[i].call();
+        }
+      });
+    }
   },
   populate() {
     // 书签

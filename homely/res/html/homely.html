@@ -141,18 +141,32 @@
                                         <p class="help-block">需要具有获取书签权限</p>
                                     </div>
                                 </div>
-
                                 <div class="row">
-                                    <div class="col-sm-6" style="border-right: 1px solid #ddd;">
+                                    <div class="col-sm-12">
                                         <div class="form-group">
                                             <label class="col-sm-3 control-label">布局方式</label>
-                                            <div class="col-sm-8 settings-bookmarks-layout-hook" >
+                                            <div class="col-sm-3 settings-bookmarks-layout-hook" >
                                                 <label  class="radio-inline">
                                                     <input  type="radio" name="layout" value="folder"> 文件式布局
                                                 </label>
                                                 <p class="help-block">书签的不同展现形式</p>
                                             </div>
+                                            <div class="col-sm-3 settings-bookmarks-layout-hook" >
+                                                <label  class="radio-inline">
+                                                    <input  type="radio" name="layout" value="flatten"> 扁平化布局
+                                                </label>
+                                            </div>
+                                            <div class="col-sm-3 settings-bookmarks-layout-hook" >
+                                                <label  class="radio-inline">
+                                                    <input  type="radio" name="layout" value="dial"> 拨号式布局
+                                                </label>
+                                            </div>
                                         </div>
+                                    </div>
+                                </div>
+                                <!--文件式布局-->
+                                <div class="row">
+                                    <div class="col-sm-12" style="border-right: 1px solid #ddd;" id="settings-bookmarks-layout-folder">
                                         <div class="form-group">
                                             <label class="col-sm-3 control-label">书签</label>
                                             <div class="col-sm-8">
@@ -195,17 +209,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-sm-6" >
-                                        <div class="form-group">
-                                            <div class="col-sm-8 settings-bookmarks-layout-hook" >
-                                                <label class="col-sm-3 control-label"></label>
-                                                <label  class="radio-inline">
-                                                    <input  type="radio" name="layout" value="flatten"> 扁平化布局
-                                                </label>
-                                                <p class="help-block">书签的不同展现形式</p>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                             <div class="tab-pane form-horizontal" id="settings-tab-history">
@@ -228,7 +231,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <!--setting通用-->
+                            <!--setting通用-->..
                             <div class="tab-pane form-horizontal" id="settings-tab-general">
                                 <div class="form-group">
                                     <label for="settings-general-title" class="col-sm-3 control-label">页面标题</label>

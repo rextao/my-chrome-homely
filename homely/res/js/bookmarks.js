@@ -83,6 +83,8 @@ Bookmarks.prototype = {
   // --------文件夹式布局------------------------/
   layoutFolder(root) {
     const that = this;
+    // 可以根据setting-样式调整
+    $("#bookmarks").addClass("panel-" + that.style["panel"]);
     if(!root){
       root = this.root;
     }

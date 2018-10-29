@@ -1064,64 +1064,8 @@ $(document).ready(function () {
     Bookmarks: lightweight bookmark browser
     bookmarks：init
     */
-    var bookmarksCallbacks = [];
-    if (settings.bookmarks["enable"]) {
-      chrome.permissions.contains({
-        permissions: ["bookmarks"]
-      }, function (has) {
-        if (!has) {
-          settings.bookmarks["enable"] = false;
-          return;
-        }
-        $("#bookmarks").addClass("panel-" + settings.style["panel"]);
-        // switch to bookmarks page
-        $("#menu-bookmarks").click(function (e) {
-          $(".navbar-right li").removeClass("active");
-          $(this).addClass("active");
-          $(".main").hide();
-          $("#bookmarks").show();
-        });
-        // show split pane if enabled
-        if (settings.bookmarks["split"]) {
-          $("#bookmarks-block").before($("<div/>").attr("id", "bookmarks-block-folders").addClass("panel-body"));
-          $("#bookmarks-block").before($("<hr/>"));
-        }
-        // pre-process the bookmark tree to add parent references
-        var processBookmarks = function processBookmarks(root) {
-          for (var i in root.children) {
-            root.children[i].parent = root;
-            if (root.children[i].children) processBookmarks(root.children[i]);
-          }
-          return root;
-        };
-        // request tree from Bookmarks API
-        chrome.bookmarks.getTree(function bookmarksCallback(tree) {
-          var root = processBookmarks(tree[0]);
-          root.title = "Bookmarks";
-          const bookmarks = new Bookmarks(settings.bookmarks,ctrlDown,root);
-          const layout = settings.bookmarks['layout'];
-          switch (layout) {
-            case 'folder':
-              bookmarks.layoutFolder();
-              break;
-            case 'flatten':
-              bookmarks.layoutFlatten();
-              break;
-          }
-          if (settings.bookmarks["merge"]) {
-            $("#bookmarks").fadeIn();
-          } else {
-            $("#menu-bookmarks").show();
-          }
-          // bookmark search
-          bookmarks.searchEventInit();
-        });
-        // return any pending callbacks
-        for (var i in bookmarksCallbacks) {
-          bookmarksCallbacks[i].call();
-        }
-      });
-    }
+    settingBookmarks.init(settings.style, ctrlDown);
+
     /*
     Apps: installed Chrome apps drop-down
     */
@@ -1324,6 +1268,7 @@ $(document).ready(function () {
       $($("#settings-tabs a")[0]).click();
     });
     $("#settings-bookmarks-enable").change(settingBookmarks.enableChangeHandler);
+    $(".settings-bookmarks-layout-hook").change(settingBookmarks.layoutHookChangeHander);
     $("#settings-bookmarks-merge").change(function (e) {
       $("#settings-bookmarks-above").prop("disabled", !($("#settings-bookmarks-enable").prop("checked") && this.checked))
         .parent().toggleClass("text-muted", !($("#settings-bookmarks-enable").prop("checked") && this.checked));
@@ -1777,15 +1722,15 @@ $(document).ready(function () {
       });
     }
     ;
-    bookmarksCallbacks.push(function () {
-      $("#menu-bookmarks").click(setupHotkeys);
-      var label = $("#menu-bookmarks .menu-label");
-      if (settings.style["topbar"].labels) {
-        label.show();
-      } else {
-        label.parent().attr("title", label.text());
-      }
-    });
+    // bookmarksCallbacks.push(function () {
+    //   $("#menu-bookmarks").click(setupHotkeys);
+    //   var label = $("#menu-bookmarks .menu-label");
+    //   if (settings.style["topbar"].labels) {
+    //     label.show();
+    //   } else {
+    //     label.parent().attr("title", label.text());
+    //   }
+    // });
     weatherCallbacks.push(function () {
       if (settings.style["topbar"].labels) $("#menu-weather .menu-label").show();
     });
