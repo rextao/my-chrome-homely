@@ -10,12 +10,18 @@ Bookmarks.prototype = {
     const $bookmarks = $('#bookmarks');
     $bookmarks.empty();
     if (!this.root.children.length) {
-      $("#bookmarks-block").show().append($("<div/>").addClass("alert alert-info").append("<span>Nothing in this folder.</span>"));
+      $("#bookmarks-block").show().append($("<div/>").addClass("alert alert-info").append("<span>文件夹内无内容</span>"));
       $("#bookmarks-block-folders").hide();
     }
     const firstMark = this.root.children[0];
     render(firstMark);
-    $bookmarks.prepend('<input id="bookmarks-search" type="search" class="form-control input-sm" placeholder="Search..."><div id="bookmarks-block-search"></div>')
+    $bookmarks.prepend(`
+        <div class="row">
+            <div class="col-sm-10 col-sm-offset-1">
+              <input id="bookmarks-search" type="search" class="form-control input-sm" placeholder="搜索书签...">
+              <div id="bookmarks-block-search"></div>
+            </div>
+        </div>`);
     $bookmarks.addClass('row').removeClass('panel panel-default');
 
     /*****内部函数，用于拼接dom*********/
@@ -163,6 +169,7 @@ Bookmarks.prototype = {
       });
     }
   },
+  // -----------------dial拨号式布局
   /**
    * 书签搜索功能初始化
    * 搜索input为：bookmarks-search
