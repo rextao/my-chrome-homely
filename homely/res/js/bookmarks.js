@@ -5,7 +5,7 @@ const Bookmarks = function (bookmarks, ctrlDown, root) {
 };
 Bookmarks.prototype = {
   // 书签-布局方式
-  // -----------------扁平化布局--------------------------/
+  // --------扁平化布局--------------------------/
   layoutFlatten() {
     const $bookmarks = $('#bookmarks');
     $bookmarks.empty();
@@ -79,7 +79,7 @@ Bookmarks.prototype = {
       return html;
     }
   },
-  // -----------------文件夹式布局------------------------/
+  // --------文件夹式布局------------------------/
   layoutFolder(root) {
     const that = this;
     if(!root){
@@ -169,7 +169,48 @@ Bookmarks.prototype = {
       });
     }
   },
-  // -----------------dial拨号式布局
+  // ---------dial拨号式布局------------------------/
+  // num表示一行渲染几个图标，颜色随机
+  layoutDial(num){
+    const $bookmarks = $('#bookmarks');
+    $bookmarks.empty();
+    const bms = this.root.children[1];
+    let html ='';
+    // 存在其他书签。
+    if(bms.length !== 0){
+      const dials = bms.children;
+      let index = 0;//可能dials中有文件夹，跳过了
+      dials.forEach(function (item) {
+        if(item.url){
+          html += render(item,index,num);
+          index = index + 1;
+        }
+      });
+      $bookmarks.append(html)
+    }
+    // 渲染dial视图
+    // 2,3,4,6；num表示一行几个
+    function render(item, i,num) {
+      let html = '';
+      const res = 12/num;// 一行2，则col-sm-6；一行3，则col-sm-4
+      // 随机颜色
+      const r = Math.floor(Math.random()*255);
+      const g = Math.floor(Math.random()*255);
+      const b = Math.floor(Math.random()*255);
+      if(i % num === 0){
+        html +=`<div class="row dial">`;
+      }
+      html += ` <div class="col-sm-${res} t-c" >
+                    <a class="item" href="${item.url}" style="background-color: rgb(${r},${g},${b})">${item.title.slice(0,3)}</a>
+                    <p>${item.title}</p>
+                </div>`;
+
+      if(i % num === num-1){
+        html +=`</div>`;
+      }
+      return html;
+    }
+  },
   /**
    * 书签搜索功能初始化
    * 搜索input为：bookmarks-search
