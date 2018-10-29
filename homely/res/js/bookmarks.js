@@ -1,5 +1,6 @@
-const Bookmarks = function (bookmarks, ctrlDown, root) {
+const Bookmarks = function (bookmarks, style, ctrlDown, root) {
   this.bookmarks = bookmarks;
+  this.style = style;
   this.ctrlDown = ctrlDown;
   this.root = root;
 };
@@ -14,7 +15,7 @@ Bookmarks.prototype = {
       $("#bookmarks-block-folders").hide();
     }
     const firstMark = this.root.children[0];
-    render(firstMark);
+    render(firstMark,this.style);
     $bookmarks.prepend(`
         <div class="row">
             <div class="col-sm-10 col-sm-offset-1">
@@ -25,9 +26,9 @@ Bookmarks.prototype = {
     $bookmarks.addClass('row').removeClass('panel panel-default');
 
     /*****内部函数，用于拼接dom*********/
-    function render(firstMark) {
+    function render(firstMark,style) {
       const html = `<div class="col-lg-2 col-md-3 col-sm-4 col-xs-6" >
-                        <div class="panel panel-default sortable">`;
+                        <div class="panel panel-${style["panel"]}">`;
       const bm = [];
       $(firstMark.children).each(function (i, item) {
         let panel = `<div class="panel-heading">${item.title}</div>`;
@@ -174,6 +175,7 @@ Bookmarks.prototype = {
   layoutDial(num){
     const $bookmarks = $('#bookmarks');
     $bookmarks.empty();
+    $bookmarks.addClass('row').removeClass('panel panel-default');
     const bms = this.root.children[1];
     let html ='';
     // 存在其他书签。
