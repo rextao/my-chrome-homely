@@ -154,7 +154,7 @@ $(document).ready(function () {
     },
     "bookmarks": {
       "enable": false,
-      // 布局方式，folder，文件夹式，扁平化布局
+      // 布局方式，，文件夹式folder，扁平化布局flatten
       "layout":"flatten",
       "bookmarklets": true,
       "foldercontents": true,
@@ -1062,6 +1062,7 @@ $(document).ready(function () {
     });
     /*
     Bookmarks: lightweight bookmark browser
+    bookmarks：init
     */
     var bookmarksCallbacks = [];
     if (settings.bookmarks["enable"]) {
@@ -1093,227 +1094,27 @@ $(document).ready(function () {
           }
           return root;
         };
-        // create a button for a bookmark node
-        var renderBookmark = function renderBookmark(node) {
-          // bookmark
-          if (node.url) {
-            // bookmarklet
-            if (node.url.substring(0, "javascript:".length) === "javascript:") {
-              if (settings.bookmarks["bookmarklets"]) {
-                return $("<button/>").addClass("btn btn-info disabled").append(fa("code")).append(" " + node.title);
-              }
-            } else {
-              var link = $("<a/>").addClass("btn btn-primary").attr("href", node.url).append(fa("file")).append(" " + node.title);
-              // workaround for accessing Chrome and URLs
-              for (var prefix of ["chrome", "chrome-extension", "file"]) {
-                if (node.url.substring(0, prefix.length + 3) === prefix + "://") {
-                  link.addClass("link-chrome");
-                  break;
-                }
-              }
-              return link;
-            }
-            // folder
-          } else if (node.children) {
-            return $("<button/>").addClass("btn btn-warning").append(fa("folder" + (node.children.length ? "" : "-o"))).append(" " + node.title).click(function (e) {
-              // normal click
-              if (e.which === 1 && (!ctrlDown || !settings.bookmarks["foldercontents"])) {
-                populateBookmarks(node);
-                // middle click or Ctrl+click, if enabled
-              } else if (e.which <= 2 && settings.bookmarks["foldercontents"]) {
-                $(node.children).each(function (i, child) {
-                  if (child.url && child.url.substring(0, "javascript:".length) !== "javascript:") chrome.tabs.create({
-                    url: child.url,
-                    active: false
-                  });
-                });
-              }
-            });
-          }
-        };
-
-
-
-
-
-
-        var renderPanelBody = function renderTwo(node, awrapper) {
-          let html  = '';
-          node.forEach(function (item,i) {
-            // 循环书签栏
-            if(item.url){
-              // 页面每条多余12个字不好看
-              let title = item.title.slice(0,12);
-              // 避免无名字的标签，用一个font图标表示
-              const fonts =['trophy','tree','tint','sign-language','globe','gift'];
-              if(!title){
-                title = `<i class="fa fa-${fonts[i % 6]}"></i>`;
-              }
-              if(awrapper){
-                html += `<li><a href="${item.url}" >${title}</a></li>`;
-              }else {
-                html += `<a class="btn btn-block btn-default" href="${item.url}" >${title}</a>`
-              }
-
-            }else {
-              html += `<div class="btn-group btn-block">
-                           <button class="btn btn-block btn-default dropdown-toggle" data-toggle="dropdown">格式化 <b class="caret"></b></button>
-                           <ul class="dropdown-menu">
-                                ${renderPanelBody(item.children,true)}
-                            </ul>
-                        </div>`
-            }
-          });
-          return html;
-        };
-
-        var render = function render(mainbookmark) {
-          const html = `<div class="col-lg-2 col-md-3 col-sm-4 col-xs-6" >
-                        <div class="panel panel-default sortable">`;
-          const bm = [];
-          $(mainbookmark.children).each(function (i, item) {
-            let panel = `<div class="panel-heading">${item.title}</div>`;
-            if(item.url){
-              bm.push(item);
-            }else {
-              panel += `<div class="panel-body">
-                            ${renderSecond(item.children)}
-                        </div>`;
-              panel = `${html}${panel}</div></div>`;
-              $('#bookmarks').append(panel);
-            }
-          });
-          const bmHtml = `${html}
-                            <div class="panel-heading">${mainbookmark.title}</div>
-                            <div class="panel-body">
-                                ${renderSecond(bm)}
-                            </div>
-                          </div></div>`;
-          $('#bookmarks').prepend(bmHtml);
-        };
-
-        var populateBookmarksMy = function populateBookmarksMy(root) {
-
-        };
-
-
-
-
-
-
-
-
-
-
-        // display a folder in the bookmarks pane
-        var populateBookmarks = function populateBookmarks(root) {
-          // clear current list
-          $("#bookmarks-title, #bookmarks-block, #bookmarks-block-folders").empty();
-          if (!root.children.length) {
-            $("#bookmarks-block").show().append($("<div/>").addClass("alert alert-info").append("<span>Nothing in this folder.</span>"));
-            $("#bookmarks-block-folders").hide();
-          }
-          $("#bookmarks-block-search, hr.bookmarks-search").remove();
-          $("#bookmarks-search").val("");
-          // loop through folder children and add to pane
-          $(root.children).each(function (i, node) {
-            var link = renderBookmark(node);
-            var container = $("#bookmarks-block" + (settings.bookmarks["split"] && link.hasClass("btn-warning") ? "-folders" : ""));
-            container.append(link);
-          });
-          $("#bookmarks-block, #bookmarks-block-folders").each(function (i, blk) {
-            $(blk).toggle(!$(blk).is(":empty"));
-          });
-          $("#bookmarks hr").toggle(!$("#bookmarks-block, #bookmarks-block-folders").is(":empty"));
-          // open Chrome links via Tabs API
-          $(".link-chrome", "#bookmarks-block").click(function (e) {
-            // normal click, not external
-            if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
-              chrome.tabs.update({url: this.href});
-              e.preventDefault();
-              // middle click, Ctrl+click, or set as external
-            } else if (e.which <= 2) {
-              chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
-              e.preventDefault();
-            }
-          });
-          // breadcrumb navigation
-          var current = root;
-          var path = [root];
-          while (current.parent) {
-            current = current.parent;
-            path.unshift(current);
-          }
-          $(path).each(function (i, node) {
-            if (i > 0) $("#bookmarks-title").append($("<span/>").addClass("caret-right"));
-            $("#bookmarks-title").append($("<button/>").addClass("btn btn-sm btn-default").text(node.title).click(function (e) {
-              populateBookmarks(node);
-            }));
-          });
-        };
         // request tree from Bookmarks API
         chrome.bookmarks.getTree(function bookmarksCallback(tree) {
           var root = processBookmarks(tree[0]);
           root.title = "Bookmarks";
-          populateBookmarksMy(root);
-          // populateBookmarks(root);
+          const bookmarks = new Bookmarks(settings.bookmarks,ctrlDown,root);
+          const layout = settings.bookmarks['layout'];
+          switch (layout) {
+            case 'folder':
+              bookmarks.layoutFolder();
+              break;
+            case 'flatten':
+              bookmarks.layoutFlatten();
+              break;
+          }
           if (settings.bookmarks["merge"]) {
             $("#bookmarks").fadeIn();
           } else {
             $("#menu-bookmarks").show();
           }
           // bookmark search
-          var timeout = 0;
-          $("#bookmarks-search").on("input", function (e) {
-            var text = $(this).val().toLowerCase();
-            if (timeout) clearTimeout(timeout);
-            timeout = setTimeout(function () {
-              if (!text) {
-                $("#bookmarks-block-search, hr.bookmarks-search").remove();
-                return;
-              }
-              var results = [];
-              var search = function search(node) {
-                // bookmark matching search
-                if (node.title && node.title.toLowerCase().indexOf(text) > -1) {
-                  results.push(node);
-                }
-                // folder
-                if (node.children) {
-                  $.each(node.children, function (i, child) {
-                    search(child);
-                  });
-                }
-              };
-              search(root);
-              var block = $("#bookmarks-block-search");
-              if (block.length) {
-                $("#bookmarks-block-search").empty();
-              } else {
-                block = $("<div/>").attr("id", "bookmarks-block-search").addClass("panel-body");
-                $("#bookmarks .panel-heading").after($("<hr/>").addClass("bookmarks-search")).after(block);
-              }
-              if (results.length) {
-                $.each(results, function (i, node) {
-                  $("#bookmarks-block-search").append(renderBookmark(node));
-                });
-                // open Chrome links via Tabs API
-                $(".link-chrome", "#bookmarks-block-search").click(function (e) {
-                  // normal click, not external
-                  if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
-                    chrome.tabs.update({url: this.href});
-                    e.preventDefault();
-                    // middle click, Ctrl+click, or set as external
-                  } else if (e.which <= 2) {
-                    chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
-                    e.preventDefault();
-                  }
-                });
-              } else {
-                $("#bookmarks-block-search").append($("<div/>").addClass("alert alert-info").text("No results."));
-              }
-            }, 200);
-          });
+          bookmarks.searchEventInit();
         });
         // return any pending callbacks
         for (var i in bookmarksCallbacks) {
@@ -1433,9 +1234,9 @@ $(document).ready(function () {
       $("#settings-links-behaviour-dropdownmiddle").prop("checked", settings.links["behaviour"].dropdownmiddle);
 
 
-      $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
-      $("#settings-bookmarks-foldercontents").prop("checked", settings.bookmarks["foldercontents"]);
-      $("#settings-bookmarks-split").prop("checked", settings.bookmarks["split"]);
+
+
+
       $("#settings-bookmarks-merge").prop("checked", settings.bookmarks["merge"]);
 
       $("#settings-bookmarks-above").prop("checked", settings.bookmarks["above"])
@@ -1685,9 +1486,9 @@ $(document).ready(function () {
           if (!success) revokeError = true;
         });
       }
-      settings.bookmarks["bookmarklets"] = $("#settings-bookmarks-bookmarklets").prop("checked");
-      settings.bookmarks["foldercontents"] = $("#settings-bookmarks-foldercontents").prop("checked");
-      settings.bookmarks["split"] = $("#settings-bookmarks-split").prop("checked");
+
+
+
       settings.bookmarks["merge"] = $("#settings-bookmarks-merge").prop("checked");
       settings.bookmarks["above"] = $("#settings-bookmarks-above").prop("checked");
       settings.history["enable"] = $("#settings-history-enable").prop("checked");
