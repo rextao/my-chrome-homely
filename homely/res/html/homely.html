@@ -141,58 +141,70 @@
                                         <p class="help-block">需要具有获取书签权限</p>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="col-sm-3 control-label">布局方式</label>
-                                    <div class="col-sm-8" id="settings-bookmarks-layout">
-                                        <label  class="radio-inline">
-                                            <input  type="radio" name="layout" value="flatten"> 扁平化布局
-                                        </label>
-                                        <label  class="radio-inline" >
-                                            <input  type="radio" name="layout" value="folder"> 文件式布局
-                                        </label>
-                                        <p class="help-block">书签的不同展现形式</p>
-                                    </div>
-                                </div>
 
-                                <div class="form-group">
-                                    <label class="col-sm-3 control-label">Bookmarklets</label>
-                                    <div class="col-sm-8">
-                                        <label class="checkbox-inline">
-                                            <input id="settings-bookmarks-bookmarklets" type="checkbox">
-                                            <span>Show bookmarklets in folders</span>
-                                        </label>
-                                        <p class="help-block">Bookmarklets will appear faded out and disabled.</p>
+                                <div class="row">
+                                    <div class="col-sm-6" style="border-right: 1px solid #ddd;">
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label">布局方式</label>
+                                            <div class="col-sm-8 settings-bookmarks-layout-hook" >
+                                                <label  class="radio-inline">
+                                                    <input  type="radio" name="layout" value="folder"> 文件式布局
+                                                </label>
+                                                <p class="help-block">书签的不同展现形式</p>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label">书签</label>
+                                            <div class="col-sm-8">
+                                                <label class="checkbox-inline">
+                                                    <input id="settings-bookmarks-bookmarklets" type="checkbox">
+                                                    <span>显示无效书签（禁用状态）</span>
+                                                </label>
+                                                <p class="help-block">书签以javascript:开头的显示方式</p>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label">文件夹</label>
+                                            <div class="col-sm-8">
+                                                <label class="checkbox-inline">
+                                                    <input id="settings-bookmarks-foldercontents" type="checkbox">
+                                                    <span>打开全部内容</span>
+                                                </label>
+                                                <p class="help-block">ctrl+左键打开文件夹全部内容</p>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label">布局细节</label>
+                                            <div class="col-sm-8">
+                                                <label class="checkbox-inline">
+                                                    <input id="settings-bookmarks-split" type="checkbox">
+                                                    <span>分离文件夹与链接</span>
+                                                </label>
+                                                <p class="help-block">选中会将书签中的文件夹统一放在一行</p>
+                                            </div>
+                                            <div class="col-sm-offset-3 col-sm-8">
+                                                <label class="checkbox-inline">
+                                                    <input id="settings-bookmarks-merge" type="checkbox">
+                                                    <span>合并链接与书签视图</span>
+                                                </label>
+                                                <label class="checkbox-inline">
+                                                    <input id="settings-bookmarks-above" type="checkbox">
+                                                    <span>书签视图在链接视图之上</span>
+                                                </label>
+                                                <p class="help-block">显示链接和书签视图在一个页面</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-sm-3 control-label">Folders</label>
-                                    <div class="col-sm-8">
-                                        <label class="checkbox-inline">
-                                            <input id="settings-bookmarks-foldercontents" type="checkbox">
-                                            <span>Middle-click to open contents</span>
-                                        </label>
-                                        <p class="help-block">Open all links in a folder, each in their own tab.</p>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-sm-3 control-label">Layouts</label>
-                                    <div class="col-sm-8">
-                                        <label class="checkbox-inline">
-                                            <input id="settings-bookmarks-split" type="checkbox">
-                                            <span>Split folders and links</span>
-                                        </label>
-                                        <p class="help-block">Group bookmarks by type, folders above and links below.</p>
-                                    </div>
-                                    <div class="col-sm-offset-3 col-sm-8">
-                                        <label class="checkbox-inline">
-                                            <input id="settings-bookmarks-merge" type="checkbox">
-                                            <span>Merge links/bookmarks views</span>
-                                        </label>
-                                        <label class="checkbox-inline">
-                                            <input id="settings-bookmarks-above" type="checkbox">
-                                            <span>Bookmarks above links</span>
-                                        </label>
-                                        <p class="help-block">Show both links and bookmarks blocks on one page.</p>
+                                    <div class="col-sm-6" >
+                                        <div class="form-group">
+                                            <div class="col-sm-8 settings-bookmarks-layout-hook" >
+                                                <label class="col-sm-3 control-label"></label>
+                                                <label  class="radio-inline">
+                                                    <input  type="radio" name="layout" value="flatten"> 扁平化布局
+                                                </label>
+                                                <p class="help-block">书签的不同展现形式</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -530,6 +542,8 @@
         <script src="../../lib/js/jquery.sortable.min.js"></script>
         <script src="../../lib/js/bootstrap.min.js"></script>
         <script src="../../lib/js/mousetrap.min.js"></script>
+        <script src="../js/tools.js"></script>
+        <script src="../js/bookmarks.js"></script>
         <script src="../js/settingBookmarks.js"></script>
         <script src="../js/settingGeneral.js"></script>
         <script src="../js/settingStyle.js"></script>
