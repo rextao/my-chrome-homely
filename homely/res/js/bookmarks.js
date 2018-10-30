@@ -1,7 +1,13 @@
-const Bookmarks = function (bookmarks, style, ctrlDown, root) {
+/**
+ * 书签主页面操作
+ * 主要包括，书签布局的渲染，以及书签主页面搜索框
+ * 注意：.link-chrome主要是处理，如收藏了chrome://extensions/等，需要利用chrome api打开
+ * @Author:RexTao
+ * @Date: 2018/10/30
+ */
+const Bookmarks = function (bookmarks, style, root) {
   this.bookmarks = bookmarks;
   this.style = style;
-  this.ctrlDown = ctrlDown;
   this.root = root;
 };
 Bookmarks.prototype = {
@@ -109,7 +115,7 @@ Bookmarks.prototype = {
     // open Chrome links via Tabs API
     $(".link-chrome", "#bookmarks-block").click(function (e) {
       // normal click, not external
-      if (e.which === 1 && !that.ctrlDown && !$(this).hasClass("link-external")) {
+      if (e.which === 1 && !e.ctrlKey && !$(this).hasClass("link-external")) {
         chrome.tabs.update({url: this.href});
         e.preventDefault();
         // middle click, Ctrl+click, or set as external
@@ -257,10 +263,10 @@ Bookmarks.prototype = {
           $.each(results, function (i, node) {
             $("#bookmarks-block-search").append(that.renderBookmark(node));
           });
-          // open Chrome links via Tabs API
+          // 搜索到类似chrome://extensions/的，利用chrome api打开
           $(".link-chrome", "#bookmarks-block-search").click(function (e) {
-            // normal click, not external
-            if (e.which === 1 && !that.ctrlDown && !$(this).hasClass("link-external")) {
+            // 注意：搜索后会为搜索结果添加bookmarks-block-search，才运行此click
+            if (e.which === 1 && !e.ctrlKey && !$(this).hasClass("link-external")) {
               chrome.tabs.update({url: this.href});
               e.preventDefault();
               // middle click, Ctrl+click, or set as external
@@ -270,7 +276,7 @@ Bookmarks.prototype = {
             }
           });
         } else {
-          $("#bookmarks-block-search").append($("<div/>").addClass("alert alert-info").text("No results."));
+          $("#bookmarks-block-search").append($("<div/>").addClass("alert alert-info").text("无搜素结果.."));
         }
       }, 200);
     });
