@@ -258,15 +258,15 @@
                                     <div class="col-sm-8">
                                         <label class="checkbox-inline">
                                             <input id="settings-general-clock-show" type="checkbox">
-                                            <span>Clock</span>
+                                            <span>时钟</span>
                                         </label>
                                         <label class="checkbox-inline">
                                             <input id="settings-general-clock-twentyfour" type="checkbox">
-                                            <span>24-hour</span>
+                                            <span>24小时</span>
                                         </label>
                                         <label class="checkbox-inline">
                                             <input id="settings-general-clock-seconds" type="checkbox">
-                                            <span>With seconds</span>
+                                            <span>显示秒</span>
                                         </label>
                                     </div>
                                 </div>
@@ -274,15 +274,15 @@
                                     <div class="col-sm-offset-3 col-sm-8">
                                         <label class="checkbox-inline">
                                             <input id="settings-general-timer-stopwatch" type="checkbox">
-                                            <span>Stopwatch</span>
+                                            <span>计时器</span>
                                         </label>
                                         <label class="checkbox-inline">
                                             <input id="settings-general-timer-countdown" type="checkbox">
-                                            <span>Countdown</span>
+                                            <span>倒计时</span>
                                         </label>
                                         <label class="checkbox-inline">
                                             <input id="settings-general-timer-beep" type="checkbox">
-                                            <span>Beep at zero</span>
+                                            <span>倒计时为0时播放声音</span>
                                         </label>
                                     </div>
                                 </div>
@@ -290,7 +290,7 @@
                                     <div class="col-sm-offset-3 col-sm-8">
                                         <label class="checkbox-inline form-control-pad-bottom">
                                             <input id="settings-general-notepad-show" type="checkbox">
-                                            <span>Notepad</span>
+                                            <span>记事本</span>
                                         </label>
                                     </div>
                                 </div>
@@ -298,19 +298,20 @@
                                     <div class="col-sm-offset-3 col-sm-8">
                                         <label class="checkbox-inline form-control-pad-bottom">
                                             <input id="settings-general-apps" type="checkbox">
-                                            <span>Chrome apps dropdown</span>
+                                            <span>显示扩展</span>
                                         </label>
+                                        <p class="help-block">注意：点击面板会启用或关闭扩展</p>
                                     </div>
                                 </div>
                                 <div class="form-group form-control-nomar-bottom settings-perm" data-key="weather">
                                     <div class="col-sm-offset-3 col-sm-8">
                                         <label class="checkbox-inline">
                                             <input id="settings-general-weather-show" type="checkbox">
-                                            <span>Weather forecast</span>
+                                            <span>天气状况</span>
                                         </label>
                                         <input id="settings-general-weather-location" type="text" class="form-control input-sm input-inline" placeholder="Location">
                                         <button id="settings-general-weather-celsius" class="btn btn-sm btn-default input-inline">&deg;C</button>
-                                        <p class="help-block">Queries <a href="http://www.openweathermap.org" class="link-external">Open Weather Map</a> for the current weather forecast.</p>
+                                        <p class="help-block">查询 <a href="http://www.openweathermap.org" class="link-external">Open Weather Map</a> 获取某个地方天气信息（默认北京天气）</p>
                                         <div class="alert alert-warning incognito"><strong>Note:</strong> weather is disabled whilst in incognito mode.</div>
                                     </div>
                                 </div>
@@ -318,9 +319,9 @@
                                     <div class="col-sm-offset-3 col-sm-8">
                                         <label class="checkbox-inline">
                                             <input id="settings-general-proxy" type="checkbox">
-                                            <span>IP address and proxy information</span>
+                                            <span>外网IP地址与代理信息</span>
                                         </label>
-                                        <p class="help-block">Queries <a href="http://www.whatismyproxy.com" class="link-external">WhatIsMyProxy.com</a> to detect your connection's external IP address, and whether it might be routed via a proxy (<i class="fa fa-exchange"></i> is shown for a possible proxy connection).</p>
+                                        <p class="help-block">查询 <a href="http://www.whatismyproxy.com" class="link-external">WhatIsMyProxy.com</a> 来检测外部IP地址,并查询是否有代理(<i class="fa fa-exchange"></i> 如可能是代理则会显示一个这个图标).</p>
                                     </div>
                                 </div>
                             </div>
@@ -551,6 +552,7 @@
         <script src="../js/tools.js"></script>
         <script src="../js/bookmarks.js"></script>
         <script src="../js/settingBookmarks.js"></script>
+        <script src="../js/settingHistory.js"></script>
         <script src="../js/settingGeneral.js"></script>
         <script src="../js/settingStyle.js"></script>
         <script src="../js/homely.js"></script>
