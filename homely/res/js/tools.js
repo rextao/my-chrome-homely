@@ -7,5 +7,11 @@ const tools = {
   },
   label(text, settings) {
     return [" ", $("<span/>").addClass("menu-label").html(text)];
+  },
+  cap(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  },
+  trim(str, len) {
+    return str.length > len ? str.substring(0, len - 3) + "..." : str;
   }
 };
