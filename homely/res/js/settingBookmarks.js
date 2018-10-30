@@ -54,6 +54,8 @@ SettingBookmarks.prototype = {
     $('#settings-bookmarks-layout-folder ').toggleClass('hide', !islayoutFloder);
   },
   save() {
+    // 标识是否删除权限失败
+    let revokeError = false;
     this.settings.bookmarks['enable'] = $('#settings-bookmarks-enable').prop('checked');
     this.settings.bookmarks['layout'] = $('.settings-bookmarks-layout-hook input:checked').prop('value');
     this.settings.bookmarks['bookmarklets'] = $('#settings-bookmarks-bookmarklets').prop('checked');
@@ -61,6 +63,14 @@ SettingBookmarks.prototype = {
     this.settings.bookmarks['split'] = $('#settings-bookmarks-split').prop('checked');
     this.settings.bookmarks["merge"] = $("#settings-bookmarks-merge").prop("checked");
     this.settings.bookmarks["above"] = $("#settings-bookmarks-above").prop("checked");
+    if (!this.settings.bookmarks["enable"]) {
+      chrome.permissions.remove({
+        permissions: ["bookmarks"]
+      }, function (success) {
+        if (!success) revokeError = true;
+      });
+    }
+    return revokeError;
   },
   initEvent(){
     $("#settings-bookmarks-enable").change(this.enableChangeHandler);

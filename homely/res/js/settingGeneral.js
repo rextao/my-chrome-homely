@@ -1,7 +1,15 @@
-const SettingGeneral = function(general, settings) {
+/**
+ * setting-通用
+ * 注意：settings-perm这个类名，是一些需要外网访问权限的操作，比如weather，
+ * @User: rextao
+ * @Date: 2018/10/30
+ */
+const SettingGeneral = function(general, settings, ajaxPerms) {
   this.general = general;
   // 主要是使用genenral，但很多小部件需要其他settings的内容
   this.settings = settings;
+  // 异步访问的权限
+  this.ajaxPerms = ajaxPerms;
 };
 
 SettingGeneral.prototype = {
@@ -16,6 +24,7 @@ SettingGeneral.prototype = {
   },
   // 打开设置面板时，初始化设置面板的一些值
   populate(){
+    const that = this;
     $("#settings-general-title").val(this.general["title"]);
     // 小部件
     // --------时钟
@@ -58,11 +67,27 @@ SettingGeneral.prototype = {
       .prop("disabled", !this.general["weather"].show);
     // --------代理
     $("#settings-general-proxy").prop("checked", this.general["proxy"]);
-
+    $(".settings-perm").each(function (i, group) {
+      var key = $(group).data("key");
+      chrome.permissions.contains({
+        origins: that.ajaxPerms[key]
+      }, function (has) {
+        if (has) {
+          $(group).addClass("has-success");
+        } else {
+          $(group).addClass("has-warning");
+          $("input[type=checkbox]", group).prop("checked", false);
+        }
+      })
+    });
   },
 
   // 设置面板，点击保存时
-  save(){
+  save(manifname){
+    const that = this;
+    // 标识是否删除权限失败
+    let revokeError = false;
+    this.setTitleName(manifname);
     // 小部件
     // ----时钟
     this.general["clock"] = {
@@ -76,14 +101,94 @@ SettingGeneral.prototype = {
       beep: $("#settings-general-timer-beep").prop("checked")
     };
     this.general["notepad"].show = $("#settings-general-notepad-show").prop("checked");
+    this.general["apps"] = $("#settings-general-apps").prop("checked");
+    this.general["weather"] = {
+      show: $("#settings-general-weather-show").prop("checked"),
+      location: $("#settings-general-weather-location").val(),
+      celsius: $("#settings-general-weather-celsius").text()[1] === "C"
+    };
+    if (!this.general["weather"].location) this.general["weather"].show = false;
+    this.general["proxy"] = $("#settings-general-proxy").prop("checked");
+    // 删除权限
+    if (!this.general["apps"]) {
+      // 注意permissions里面的权限是不可remove的，只有options.permissions可以删除
+      // 官网介绍，删除权限后，再利用permissions.request() 添加权限不会弹出prompt窗口
+      chrome.permissions.remove({
+        permissions: ["management"]
+      }, function (success) {
+        if (!success) revokeError = true;
+      });
+    }
+    if (!this.general["weather"].show) revoke("weather");
+    if (!this.general["proxy"]) revoke("proxy");
+    function revoke(key) {
+      chrome.permissions.remove({
+        origins: that.ajaxPerms[key]
+      }, function (success) {
+        if (!success) revokeError = true;
+      });
+    }
+    return revokeError;
   },
   // 初始化setting面板的一些响应事件
   initEvent(){
+    const that = this;
     $("#settings-general-timer-countdown").change(function (e) {
       $("#settings-general-timer-beep").prop("disabled", !this.checked)
         .parent().toggleClass("text-muted", !this.checked);
     });
+
+    // 查询manifest.json的optional_permissions是否具有这个权限
+    // 主要是增加weather、proxy的change事件，
+    $(".settings-perm input[type=checkbox]").change(function (e) {
+      $("#settings-alerts").empty();
+      // grant requried permissions for provider
+      var id = this.id;
+      var perms = that.ajaxPerms[$("#" + id).closest(".settings-perm").data("key")];
+      if (this.checked) {
+        // https://developer.chrome.com/apps/permissions#method-request
+        chrome.permissions.request({
+          origins: perms
+        }, function (success) {
+          var check = $("#" + id);
+          if (success) {
+            check.closest(".settings-perm").removeClass("has-warning").addClass("has-success");
+          } else {
+            var text = "Permission denied for " + perms.join(", ") + ".";
+            $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
+            check.prop("checked", false).change();
+          }
+        });
+      }
+    });
+
+    $("#settings-general-apps").change(function (e) {
+      $("#settings-alerts").empty();
+      // grant history permissions
+      if (this.checked) {
+        chrome.permissions.request({
+          permissions: ["management"]
+        }, function (success) {
+          if (success) {
+            $(".settings-perm-management").removeClass("has-warning").addClass("has-success");
+            $("#settings-general-apps").prop("disabled", false).parent().removeClass("text-muted");
+          } else {
+            var text = "Permission denied for management.";
+            $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
+            $(this).prop("checked", false);
+          }
+        });
+      }
+    });
+    $("#settings-general-weather-show").change(function (e) {
+      $("#settings-general-weather-location, #settings-general-weather-celsius").prop("disabled", !this.checked);
+      if (this.checked) $("#settings-general-weather-location").focus();
+    });
+    $("#settings-general-weather-celsius").click(function (e) {
+      $(this).html("&deg;" + ($(this).text()[1] === "C" ? "F" : "C"));
+    });
   },
+
   //  -------------设置title名字
   setTitleName(manifname){
     // manifname为manifest文件中的name值
@@ -337,11 +442,11 @@ SettingGeneral.prototype = {
     }
   },
   // 天气
-  initWeather(weatherCallbacks,ajaxPerms){
+  initWeather(weatherCallbacks){
     const that = this;
     if (this.general["weather"].show && !chrome.extension.inIncognitoContext) {
       chrome.permissions.contains({
-        origins: ajaxPerms["weather"]
+        origins: that.ajaxPerms["weather"]
       }, function (has) {
         if (!has || !that.general["weather"].location) {
           that.general["weather"].show = false;
@@ -382,11 +487,11 @@ SettingGeneral.prototype = {
     }
   },
   // 代理
-  initProxy(proxyCallbacks, ajaxPerms){
+  initProxy(proxyCallbacks){
     const that = this;
     if (that.general["proxy"]) {
       chrome.permissions.contains({
-        origins: ajaxPerms["proxy"]
+        origins: that.ajaxPerms["proxy"]
       }, function (has) {
         if (!has) {
           that.general["proxy"] = false;

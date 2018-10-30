@@ -86,6 +86,61 @@ SettingStyle.prototype = {
       content: $("#settings-style-customcss-content").val()
     };
   },
+  initEvent(){
+    // panel style group
+    $("#settings-style-panel label").click(function (e) {
+      $("input", this).prop("checked", true);
+    });
+    // background image selector
+    $("#settings-style-background-image").on("input change", function (e) {
+      // lose previous value on change
+      $(this).data("val", "").prop("placeholder", "(none)");
+      $(".settings-style-background-check").prop("disabled", !$(this).val()).next().toggleClass("text-muted", !$(this).val());
+    });
+    /***********************setting-style-background下拉框****************************************************************/
+    $("#settings-style-background-choose").click(function (e) {
+      // trigger hidden input field
+      $("#settings-alerts").empty();
+      $("#settings-style-background-file").click();
+    });
+    $("#settings-style-background-file").change(function (e) {
+      // if a file is selected
+      if (this.files.length) {
+        var file = this.files.item(0);
+        // if an image
+        if (file.type.match(/^image\//)) {
+          var reader = new FileReader;
+          reader.readAsDataURL(file);
+          reader.onload = function readerLoaded() {
+            $("#settings-style-background-image").data("val", reader.result).prop("placeholder", file.name).val("");
+            $("#settings-style-background-file").val("");
+          };
+        } else {
+          $("#settings-alerts").empty().append($("<div/>").addClass("alert alert-danger")
+            .text(file.name + " doesn't seem to be a valid image file."));
+        }
+      }
+    });
+    // clear image
+    $("#settings-style-background-none").click(function (e) {
+      $("#settings-style-background-image").data("val", "").prop("placeholder", "(none)").val("");
+      $(".settings-style-background-check").prop("disabled", true).next().addClass("text-muted");
+    });
+
+    // reset to default stripes
+    $("#settings-style-background-default").click(function (e) {
+      $("#settings-style-background-image").data("val", "../img/bg.png").prop("placeholder", "(default)").val("");
+      $("#settings-style-background-repeat").prop("checked", false);
+      $("#settings-style-background-centre").prop("checked", true);
+      $("#settings-style-background-fixed").prop("checked", false);
+      $("#settings-style-background-stretch").prop("checked", true);
+      $(".settings-style-background-check").prop("disabled", false).next().removeClass("text-muted");
+    });
+    // custom CSS editor
+    $("#settings-style-customcss-enable").change(function (e) {
+      $("#settings-style-customcss-content").prop("disabled", !$(this).prop("checked")).focus();
+    });
+  },
   // 为页面添加样式，在head中添加style样式
   appendStyleToHead(){
     const css = [];

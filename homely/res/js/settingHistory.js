@@ -12,14 +12,65 @@ SettingHistory.prototype = {
   },
   populate(){
     $("#settings-history-enable").prop("checked", this.history["enable"]);
-
+    // 根据算法有权限设置字体颜色
+    chrome.permissions.contains({
+      permissions: ["history"]
+    }, function (has) {
+      if (has) {
+        $(".settings-perm-history").addClass("has-success");
+      } else {
+        $(".settings-perm-history").addClass("has-warning");
+        $("#settings-history-enable").prop("checked", false);
+      }
+    });
     $("#settings-history-limit").val(this.history["limit"])
       .prop("disabled", !this.history["enable"])
       .parent().toggleClass("text-muted", !this.history["enable"]);
     $("#settings-history-limit-value").text(this.history["limit"])
       .parent().toggleClass("text-muted", !this.history["enable"]);
   },
-  save(){},
+  save(){
+    // 标识是否删除权限失败
+    let revokeError = false;
+    this.history["enable"] = $("#settings-history-enable").prop("checked");
+    this.history["limit"] = parseInt($("#settings-history-limit").val());
+    if (!this.history["enable"]) {
+      chrome.permissions.remove({
+        permissions: ["history"]
+      }, function (success) {
+        if (!success) revokeError = true;
+      });
+    }
+    return revokeError;
+  },
+  initEvent(){
+    const that = this;
+    $("#settings-history-enable").change(function (e) {
+      $("#settings-alerts").empty();
+      // grant history permissions
+      if (this.checked) {
+        chrome.permissions.request({
+          permissions: ["history"]
+        }, function (success) {
+          if (success) {
+            $(".settings-perm-history").removeClass("has-warning").addClass("has-success");
+            $("#settings-history-limit").prop("disabled", false).parent().removeClass("text-muted");
+            $("#settings-history-limit-value").parent().removeClass("text-muted");
+          } else {
+            var text = "Permission denied for history.";
+            $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
+            $(this).prop("checked", false);
+          }
+        });
+      } else {
+        $("#settings-history-limit").prop("disabled", true).parent().addClass("text-muted");
+        $("#settings-history-limit-value").parent().addClass("text-muted");
+      }
+    });
+    $("#settings-history-limit").on("input change", function (e) {
+      $("#settings-history-limit-value").text($(this).val());
+    });
+  },
   // 在启用并且非隐藏模式使用
   // 历史只有这一个函数，故直接传递参数
   enableHistory(fixLinkHandling){
