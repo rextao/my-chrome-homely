@@ -1,19 +1,7 @@
 $(document).ready(function () {
   // helper methods
-  var cap = function cap(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-  var trim = function trim(str, len) {
-    return str.length > len ? str.substring(0, len - 3) + "..." : str;
-  }
-  var pad = function pad(n) {
-    return n < 10 ? "0" + n : n.toString();
-  };
   var fa = function fa(icon, fw) {
     return $("<i/>").addClass("fa fa-" + icon).toggleClass("fa-fw", fw !== false);
-  }
-  var label = function label(text, settings) {
-    return [" ", $("<span/>").addClass("menu-label").html(text)];
   }
   var manif = chrome.runtime.getManifest();
   // 默认设置
@@ -185,8 +173,8 @@ $(document).ready(function () {
       },
       "apps": false,
       "weather": {
-        "show": false,
-        "location": "",
+        "show": true,
+        "location": "Beijing",
         "celsius": true
       },
       "proxy": false
@@ -230,7 +218,6 @@ $(document).ready(function () {
     settings = $.extend(true, {}, settings, store);
     // apply custom styles
     document.title = settings.general["title"];
-    var bookmarksCallbacks = [];
     // 监控ctrl以及，可以使chrome://开头链接正常打开
     var ctrlDown = false;
     $(window).keydown(function (e) {
@@ -261,109 +248,26 @@ $(document).ready(function () {
       });
     };
     /***********************setting 初始化*********************************/
+    let bookmarksCallbacks = [];
+    let weatherCallbacks = [];
+    let proxyCallbacks = [];
     // 设置（书签）
     const settingBookmarks = new SettingBookmarks(settings, bookmarksCallbacks);
     settingBookmarks.init();
+    // 设置（历史）
+    const settingHistory = new SettingHistory(settings.history);
+    settingHistory.init(fixLinkHandling);
     // 设置（通用）
     const settingGeneral = new SettingGeneral(settings.general, settings);
     settingGeneral.init();
     settingGeneral.initExtensions(fixLinkHandling);
+    settingGeneral.initWeather(weatherCallbacks,ajaxPerms);
+    settingGeneral.initProxy(proxyCallbacks,ajaxPerms);
     // 设置（样式）
     const settingStyle = new SettingStyle(settings.style);
     settingStyle.init();
 
 
-    // get weather
-    var weatherCallbacks = [];
-    if (settings.general["weather"].show && !chrome.extension.inIncognitoContext) {
-      chrome.permissions.contains({
-        origins: ajaxPerms["weather"]
-      }, function (has) {
-        if (!has || !settings.general["weather"].location) {
-          settings.general["weather"].show = false;
-          return;
-        }
-        if (navigator.onLine) {
-          var loc = encodeURIComponent(settings.general["weather"].location);
-          var unit = (settings.general["weather"].celsius ? "metric" : "imperial");
-          $.ajax({
-            url: "http://api.openweathermap.org/data/2.5/weather?APPID=833b8b2bb6161e0c2b43dab37d0c93a7&q=" + loc + "&units=" + unit,
-            success: function success(resp, stat, xhr) {
-              var conds = [];
-              $.each(resp.weather, function (i, item) {
-                conds.push(item.description);
-              });
-              var temp = Math.round(resp.main.temp);
-              var title = resp.name + ": " + cap((settings.style["topbar"].labels ? "" : temp + " degrees, ") + conds.join(", "));
-              var link = $("<a/>").attr("id", "menu-weather").attr("href", "http://www.openweathermap.org/city/" + resp.id)
-                .attr("title", title).hide();
-              link.append(fa("cloud", false)).append(label(temp + "&deg;" + (unit === "metric" ? "C" : "F"), settings));
-              // always show before proxy link if that loads first
-              if ($("#menu-proxy").length) {
-                $("#menu-proxy").before($("<li/>").append(link));
-              } else {
-                $("#menu-left").append($("<li/>").append(link));
-              }
-              link.fadeIn();
-              // return any pending callbacks
-              for (var i in weatherCallbacks) {
-                weatherCallbacks[i].call();
-              }
-            }
-          });
-        }
-      });
-    }
-    // get IP address / proxy status
-    var proxyCallbacks = [];
-    if (settings.general["proxy"]) {
-      chrome.permissions.contains({
-        origins: ajaxPerms["proxy"]
-      }, function (has) {
-        if (!has) {
-          settings.general["proxy"] = false;
-          return;
-        }
-        var link = $("<a/>").attr("id", "menu-proxy");
-        if (navigator.onLine) {
-          $.ajax({
-            url: "http://www.whatismyproxy.com",
-            success: function success(resp, stat, xhr) {
-              var params = $(".h1", resp).text().split("IP address: ");
-              link.attr("href", "http://www.whatismyproxy.com").hide();
-              link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(label(params[1], settings));
-              $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
-              link.fadeIn();
-            },
-            error: function (xhr, stat, err) {
-              link.append(fa("power-off", false)).append(label("No connection", settings)).hide();
-              $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
-              link.fadeIn();
-            },
-            complete: function (xhr, stat) {
-              // return any pending callbacks
-              for (var i in proxyCallbacks) {
-                proxyCallbacks[i].call();
-              }
-            }
-          });
-        } else {
-          link.append(fa("power-off", false)).append(label("No connection", settings)).hide();
-          $("#menu-left").append($("<li/>").append(link));
-          link.fadeIn();
-          // return any pending callbacks
-          for (var i in proxyCallbacks) {
-            proxyCallbacks[i].call();
-          }
-        }
-      });
-    }
-    /*
-    Links: customizable grid of links and menus
-    */
-    if (settings.bookmarks["enable"] && settings.bookmarks["merge"] && settings.bookmarks["above"]) $("#links").before($("#bookmarks"));
-
-    if (!settings.bookmarks["enable"]) $("#menu-links").hide();
     var populateLinks = function populateLinks() {
       $("#alerts, #links").empty();
       if (settings.links["edit"].dragdrop) $("#links").off("sortupdate");
@@ -900,80 +804,13 @@ $(document).ready(function () {
       $(".main").hide();
       $("#links").show();
     });
-    /*
-    Bookmarks: lightweight bookmark browser
-    bookmarks：init
-    */
 
-
-    /*
-    History: quick drop-down of recent pages
-    */
-    // only show if enabled and not in incognito
-    if (settings.history["enable"] && !chrome.extension.inIncognitoContext) {
-      chrome.permissions.contains({
-        permissions: ["history"]
-      }, function (has) {
-        if (!has) {
-          settings.history["enable"] = false;
-          return;
-        }
-        if (settings.history["limit"] === 0) settings.history["limit"] = 10;
-        var block = true;
-        $("#history-title").click(function (e) {
-          // delay opening list until loaded
-          if (block && !$(this).hasClass("active")) {
-            e.stopPropagation();
-            // request items from History API
-            chrome.history.search({text: "", maxResults: settings.history["limit"]}, function historyCallback(results) {
-              $("#history-list").empty();
-              // loop through history items
-              for (var i in results) {
-                var res = results[i];
-                var link = $("<a/>").attr("href", res.url).text(trim(res.title ? res.title : res.url, 50));
-                // workaround for accessing Chrome and file URLs
-                for (var prefix of ["chrome", "chrome-extension", "file"]) {
-                  if (res.url.substring(0, prefix.length + 3) === prefix + "://") {
-                    link.click(function (e) {
-                      // normal click, not external
-                      if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
-                        chrome.tabs.update({url: this.href});
-                        e.preventDefault();
-                        // middle click, Ctrl+click, or set as external
-                      } else if (e.which <= 2) {
-                        chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
-                        e.preventDefault();
-                      }
-                    });
-                    break;
-                  }
-                }
-                // add to dropdown
-                $("#history-list").append($("<li/>").append(link));
-              }
-              $("#history-list").append($("<li/>").addClass("divider"));
-              $("#history-list").append($("<li/>").append($("<a/>").addClass("link-chrome").append(fa("search")).append(" View full history").attr("href", "chrome://history")));
-              fixLinkHandling("#history-list");
-              block = false;
-              $("#history-title").click();
-            });
-            // reset block
-          } else {
-            block = true;
-          }
-        });
-        $("#menu-history").show();
-      });
-    }
-    /*
-    Settings: modal to customize links and options
-    */
-    // set to current data
     /**
      * 填充设置
      */
     var populateSettings = function populateSettings() {
       settingBookmarks.populate();
+      settingHistory.populate();
       settingGeneral.populate();
       settingStyle.populate();
       $("#settings-links-edit-menu").prop("checked", settings.links["edit"].menu);
@@ -982,14 +819,6 @@ $(document).ready(function () {
 
 
 
-
-
-      $("#settings-bookmarks-merge").prop("checked", settings.bookmarks["merge"]);
-
-      $("#settings-bookmarks-above").prop("checked", settings.bookmarks["above"])
-        .prop("disabled", !(settings.bookmarks["enable"] && settings.bookmarks["merge"]))
-        .parent().toggleClass("text-muted", !(settings.bookmarks["enable"] && settings.bookmarks["merge"]));
-      $("#settings-history-enable").prop("checked", settings.history["enable"]);
       // highlight history permission status
       chrome.permissions.contains({
         permissions: ["history"]
@@ -1001,11 +830,8 @@ $(document).ready(function () {
           $("#settings-history-enable").prop("checked", false);
         }
       });
-      $("#settings-history-limit").val(settings.history["limit"])
-        .prop("disabled", !settings.history["enable"])
-        .parent().toggleClass("text-muted", !settings.history["enable"]);
-      $("#settings-history-limit-value").text(settings.history["limit"])
-        .parent().toggleClass("text-muted", !settings.history["enable"]);
+
+
       // highlight notif/basket permissions status
       $(".settings-perm").each(function (i, group) {
         var key = $(group).data("key");
@@ -1023,43 +849,16 @@ $(document).ready(function () {
 
       $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
 
-
-      $("#settings-general-timer-stopwatch").prop("checked", settings.general["timer"].stopwatch);
-      $("#settings-general-timer-countdown").prop("checked", settings.general["timer"].countdown);
-      $("#settings-general-timer-beep").prop("checked", settings.general["timer"].beep)
-        .prop("disabled", !settings.general["timer"].countdown)
-        .parent().toggleClass("text-muted", !settings.general["timer"].countdown);
-      $("#settings-general-notepad-show").prop("checked", settings.general["notepad"].show);
-      $("#settings-general-apps").prop("checked", settings.general["apps"]);
-      // highlight apps permission status
-      chrome.permissions.contains({
-        permissions: ["management"]
-      }, function (has) {
-        if (has) {
-          $(".settings-perm-management").addClass("has-success");
-        } else {
-          $(".settings-perm-management").addClass("has-warning");
-          $("#settings-general-apps").prop("checked", false);
-        }
-      });
-      $("#settings-general-weather-show").prop("checked", settings.general["weather"].show);
-      $("#settings-general-weather-location").val(settings.general["weather"].location)
-        .prop("disabled", !settings.general["weather"].show)
-        .parent().toggleClass("text-muted", !settings.general["weather"].show);
-      $("#settings-general-weather-celsius").html("&deg;" + (settings.general["weather"].celsius ? "C" : "F"))
-        .prop("disabled", !settings.general["weather"].show);
-      $("#settings-general-proxy").prop("checked", settings.general["proxy"]);
-
     }
+    // image初始化,根据配置的不同，显示不同信息
     switch (settings.style["background"].image) {
       case "":
-        $("#settings-style-background-image").prop("placeholder", "(none)");
+        $("#settings-style-background-image").prop("placeholder", "(无图模式)");
         break;
       case "../img/bg.png":
-        $("#settings-style-background-image").prop("placeholder", "(default)");
+        $("#settings-style-background-image").prop("placeholder", "(默认图片)");
         break;
     }
-
     $(".ext-name").text(manif.name);
     $(".ext-ver").text(manif.version);
     // reset modal on show
@@ -1070,12 +869,9 @@ $(document).ready(function () {
       populateSettings();
       $($("#settings-tabs a")[0]).click();
     });
-    $("#settings-bookmarks-enable").change(settingBookmarks.enableChangeHandler);
-    $(".settings-bookmarks-layout-hook").change(settingBookmarks.layoutHookChangeHander);
-    $("#settings-bookmarks-merge").change(function (e) {
-      $("#settings-bookmarks-above").prop("disabled", !($("#settings-bookmarks-enable").prop("checked") && this.checked))
-        .parent().toggleClass("text-muted", !($("#settings-bookmarks-enable").prop("checked") && this.checked));
-    });
+    settingBookmarks.initEvent();
+    settingGeneral.initEvent();
+
     $("#settings-history-enable").change(function (e) {
       $("#settings-alerts").empty();
       // grant history permissions
@@ -1101,13 +897,14 @@ $(document).ready(function () {
     $("#settings-history-limit").on("input change", function (e) {
       $("#settings-history-limit-value").text($(this).val());
     });
-    // permission requests
+    // 查询manifest.json的optional_permissions是否具有这个权限
     $(".settings-perm input[type=checkbox]").change(function (e) {
       $("#settings-alerts").empty();
       // grant requried permissions for provider
       var id = this.id;
       var perms = ajaxPerms[$("#" + id).closest(".settings-perm").data("key")];
       if (this.checked) {
+        // https://developer.chrome.com/apps/permissions#method-request
         chrome.permissions.request({
           origins: perms
         }, function (success) {
@@ -1123,12 +920,8 @@ $(document).ready(function () {
       }
     });
     // enable fields from checkbox selection
-    // settingGeneral.init();
 
-    $("#settings-general-timer-countdown").change(function (e) {
-      $("#settings-general-timer-beep").prop("disabled", !this.checked)
-        .parent().toggleClass("text-muted", !this.checked);
-    });
+
     $("#settings-general-apps").change(function (e) {
       $("#settings-alerts").empty();
       // grant history permissions
@@ -1233,10 +1026,6 @@ $(document).ready(function () {
         });
       }
 
-
-
-      settings.bookmarks["merge"] = $("#settings-bookmarks-merge").prop("checked");
-      settings.bookmarks["above"] = $("#settings-bookmarks-above").prop("checked");
       settings.history["enable"] = $("#settings-history-enable").prop("checked");
       if (!settings.history["enable"]) {
         chrome.permissions.remove({
@@ -1246,31 +1035,27 @@ $(document).ready(function () {
         });
       }
       settings.history["limit"] = parseInt($("#settings-history-limit").val());
-      // var revoke = function revoke(key) {
-      //   chrome.permissions.remove({
-      //     origins: ajaxPerms[key]
-      //   }, function (success) {
-      //     if (!success) revokeError = true;
-      //   });
-      // }
+      var revoke = function revoke(key) {
+        chrome.permissions.remove({
+          origins: ajaxPerms[key]
+        }, function (success) {
+          if (!success) revokeError = true;
+        });
+      }
       var revokeError = false;
 
       settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
 
-      settings.general["timer"] = {
-        stopwatch: $("#settings-general-timer-stopwatch").prop("checked"),
-        countdown: $("#settings-general-timer-countdown").prop("checked"),
-        beep: $("#settings-general-timer-beep").prop("checked")
-      };
-      settings.general["notepad"].show = $("#settings-general-notepad-show").prop("checked");
+
       settings.general["apps"] = $("#settings-general-apps").prop("checked");
-      // if (!settings.general["apps"]) {
-      //   chrome.permissions.remove({
-      //     permissions: ["management"]
-      //   }, function (success) {
-      //     if (!success) revokeError = true;
-      //   });
-      // }
+      if (!settings.general["apps"]) {
+        // 注意permissions里面的权限是不可remove的，只有options.permissions可以删除
+        chrome.permissions.remove({
+          permissions: ["management"]
+        }, function (success) {
+          if (!success) revokeError = true;
+        });
+      }
       settings.general["weather"] = {
         show: $("#settings-general-weather-show").prop("checked"),
         location: $("#settings-general-weather-location").val(),
@@ -1280,13 +1065,6 @@ $(document).ready(function () {
       // if (!settings.general["weather"].show) revoke("weather");
       settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
       // if (!settings.general["proxy"]) revoke("proxy");
-      // settings.style["font"] = $("#settings-style-font").val();
-      // settings.style["fluid"] = $("#settings-style-fluid").prop("checked");
-      // settings.style["topbar"] = {
-      //   fix: $("#settings-style-topbar-fix").prop("checked"),
-      //   dark: $("#settings-style-topbar-dark").prop("checked"),
-      //   labels: $("#settings-style-topbar-labels").prop("checked")
-      // };
 
       $("#settings").on("hide.bs.modal", function (e) {
         e.preventDefault();
