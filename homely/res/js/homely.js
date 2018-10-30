@@ -248,9 +248,13 @@ $(document).ready(function () {
       });
     };
     /***********************setting 初始化*********************************/
+    /******************* 运行init函数，初始化页面开始需要的内容****************************/
     let bookmarksCallbacks = [];
     let weatherCallbacks = [];
     let proxyCallbacks = [];
+    // 链接
+    const settingLinks = new SettingLinks(settings.links, settings, fixLinkHandling);
+    settingLinks.init();
     // 设置（书签）
     const settingBookmarks = new SettingBookmarks(settings, bookmarksCallbacks);
     settingBookmarks.init();
@@ -258,7 +262,7 @@ $(document).ready(function () {
     const settingHistory = new SettingHistory(settings.history);
     settingHistory.init(fixLinkHandling);
     // 设置（通用）
-    const settingGeneral = new SettingGeneral(settings.general, settings);
+    const settingGeneral = new SettingGeneral(settings.general, settings, ajaxPerms);
     settingGeneral.init();
     settingGeneral.initExtensions(fixLinkHandling);
     settingGeneral.initWeather(weatherCallbacks,ajaxPerms);
@@ -268,217 +272,6 @@ $(document).ready(function () {
     settingStyle.init();
 
 
-    var populateLinks = function populateLinks() {
-      $("#alerts, #links").empty();
-      if (settings.links["edit"].dragdrop) $("#links").off("sortupdate");
-      // loop through blocks
-      $(settings.links["content"]).each(function (i, linkBlk) {
-        if (!linkBlk.title) linkBlk.title = "";
-        if (!linkBlk.buttons) linkBlk.buttons = [];
-        var blk = $("<div/>").addClass("panel panel-" + settings.style["panel"] + " sortable").data("pos", i);
-        var head = $("<div/>").addClass("panel-heading").text(linkBlk.title).dblclick(function (e) {
-          $("#links-editor").data("block", i).modal("show");
-        });
-        if (!linkBlk.title) head.html("&nbsp;");
-        // edit controls dropdown on header
-        if (settings.links["edit"].menu) {
-          var editRoot = $("<div/>").addClass("btn-group pull-right");
-          var editBtn = $("<button/>").addClass("btn btn-xs btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<b/>").addClass("caret")).hide();
-          editRoot.append(editBtn);
-          var editMenu = $("<ul/>").addClass("dropdown-menu");
-          if (i > 0) {
-            editMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-left")).append(" Move to start").click(function (e) {
-              for (var x = i; x > 0; x--) {
-                settings.links["content"][x] = settings.links["content"][x - 1];
-              }
-              settings.links["content"][0] = linkBlk;
-              populateLinks();
-              chrome.storage.local.set({"links": settings.links});
-            })));
-            editMenu.append($("<li/>").append($("<a/>").append(fa("angle-left")).append(" Move left").click(function (e) {
-              settings.links["content"][i] = settings.links["content"][i - 1];
-              settings.links["content"][i - 1] = linkBlk;
-              populateLinks();
-              chrome.storage.local.set({"links": settings.links});
-            })));
-          }
-          var max = settings.links["content"].length - 1;
-          if (i < max) {
-            editMenu.append($("<li/>").append($("<a/>").append(fa("angle-right")).append(" Move right").click(function (e) {
-              settings.links["content"][i] = settings.links["content"][i + 1];
-              settings.links["content"][i + 1] = linkBlk;
-              populateLinks();
-              chrome.storage.local.set({"links": settings.links});
-            })));
-            editMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-right")).append(" Move to end").click(function (e) {
-              for (var x = i; x < max; x++) {
-                settings.links["content"][x] = settings.links["content"][x + 1];
-              }
-              settings.links["content"][max] = linkBlk;
-              populateLinks();
-              chrome.storage.local.set({"links": settings.links});
-            })));
-          }
-          if (i > 0 || i < max) {
-            editMenu.append($("<li/>").append($("<a/>").append(fa("arrows")).append(" Move to position").click(function (e) {
-              var pos = prompt("Enter a new position for this block.", i);
-              if (typeof(pos) === "string") {
-                pos = parseInt(pos);
-                if (!isNaN(pos)) {
-                  if (pos < 0) pos = 0;
-                  if (pos > max) pos = max;
-                  if (pos < i) {
-                    for (var x = i; x > pos; x--) {
-                      settings.links["content"][x] = settings.links["content"][x - 1];
-                    }
-                  } else if (pos > i) {
-                    for (var x = i; x < pos; x++) {
-                      settings.links["content"][x] = settings.links["content"][x + 1];
-                    }
-                  }
-                  settings.links["content"][pos] = linkBlk;
-                  populateLinks();
-                  chrome.storage.local.set({"links": settings.links});
-                }
-              }
-            })));
-            editMenu.append($("<li/>").addClass("divider"));
-          }
-          editMenu.append($("<li/>").append($("<a/>").append(fa("step-backward")).append(" New block before").click(function (e) {
-            settings.links["content"].splice(i, 0, {
-              title: "",
-              buttons: []
-            });
-            $("#links-editor").data("block", i).modal("show");
-            populateLinks();
-            chrome.storage.local.set({"links": settings.links});
-          })));
-          editMenu.append($("<li/>").append($("<a/>").append(fa("step-forward")).append(" New block after").click(function (e) {
-            settings.links["content"].splice(i + 1, 0, {
-              title: "",
-              buttons: []
-            });
-            $("#links-editor").data("block", i + 1).modal("show");
-            populateLinks();
-            chrome.storage.local.set({"links": settings.links});
-          })));
-          editMenu.append($("<li/>").append($("<a/>").append(fa("files-o")).append(" Duplicate block").click(function (e) {
-            settings.links["content"].splice(i + 1, 0, $.extend(true, {}, linkBlk));
-            populateLinks();
-            chrome.storage.local.set({"links": settings.links});
-          })));
-          editMenu.append($("<li/>").addClass("divider"));
-          editMenu.append($("<li/>").append($("<a/>").append(fa("pencil")).append(" Edit block").click(function (e) {
-            $("#links-editor").data("block", i).modal("show");
-          })));
-          editMenu.append($("<li/>").append($("<a/>").append(fa("tag")).append(" Rename block").click(function (e) {
-            var name = prompt("Enter a new name for this block.", linkBlk.title);
-            if (typeof(name) === "string") {
-              linkBlk.title = name;
-              populateLinks();
-              chrome.storage.local.set({"links": settings.links});
-            }
-          })));
-          editMenu.append($("<li/>").append($("<a/>").append(fa("trash-o")).append(" Delete block").click(function (e) {
-            if (confirm("Are you sure you want to delete " + (linkBlk.title ? linkBlk.title : "this block") + "?")) {
-              settings.links["content"].splice(i, 1);
-              populateLinks();
-              chrome.storage.local.set({"links": settings.links});
-            }
-          })));
-          editRoot.append(editMenu);
-          head.append(editRoot);
-          head.mouseenter(function (e) {
-            editBtn.show();
-          }).mouseleave(function (e) {
-            editBtn.hide();
-            if (editRoot.hasClass("open")) {
-              editBtn.dropdown("toggle");
-            }
-          });
-        }
-        blk.append(head);
-        var body = $("<div/>").addClass("panel-body");
-        // loop through buttons
-        $.each(linkBlk.buttons, function (j, linkBtn) {
-          if (!linkBtn.title) linkBtn.title = "";
-          if (!linkBtn.style) linkBtn.style = "default";
-          var btn;
-          if (linkBtn.menu) {
-            btn = $("<div/>").addClass("btn-group btn-block");
-            btn.append($("<button/>").addClass("btn btn-block btn-" + linkBtn.style + " dropdown-toggle").attr("data-toggle", "dropdown")
-              .text(linkBtn.title + " ").append($("<b/>").addClass("caret")));
-            var menu = $("<ul/>").addClass("dropdown-menu");
-            // loop through menu items
-            var urls = [];
-            for (var k in linkBtn.menu) {
-              var linkItem = linkBtn.menu[k];
-              if (typeof(linkItem) === "string") {
-                if (k > 0) menu.append($("<li/>").addClass("divider"));
-                if (linkItem) menu.append($("<li/>").addClass("dropdown-header").text(linkItem));
-              } else {
-                if (!linkItem.title) linkItem.title = "";
-                var item = $("<a/>").attr("href", linkItem.url).text(linkItem.title);
-                // workaround for accessing Chrome and file URLs
-                for (var prefix of ["chrome", "chrome-extension", "file"]) {
-                  if (linkItem.url.substring(0, prefix.length + 3) === prefix + "://") {
-                    item.addClass("link-chrome");
-                    break;
-                  }
-                }
-                // always open in new tab
-                if (linkItem.external) item.addClass("link-external");
-                menu.append($("<li/>").append(item));
-                urls.push(linkItem.url);
-              }
-            }
-            // middle-click to open all
-            if (settings.links["behaviour"].dropdownmiddle) {
-              var active = false;
-              btn.mousedown(function (e) {
-                active = true;
-              }).mouseup(function (e) {
-                if (e.which === 1 && active && e.ctrlKey) {
-                  e.preventDefault();
-                  for (var i in urls) chrome.tabs.create({url: urls[i], active: false});
-                  active = false;
-                }
-              });
-            }
-            btn.append(menu);
-          } else {
-            btn = $("<a/>").addClass("btn btn-block btn-" + linkBtn.style).attr("href", linkBtn.url).text(linkBtn.title);
-            if (!linkBtn.title) btn.html("&nbsp;");
-            // workaround for accessing Chrome and file URLs
-            for (var prefix of ["chrome", "chrome-extension", "file"]) {
-              if (linkBtn.url.substring(0, prefix.length + 3) === prefix + "://") {
-                btn.addClass("link-chrome");
-                break;
-              }
-            }
-            // always open in new tab
-            if (linkBtn.external) btn.addClass("link-external");
-          }
-          body.append(btn);
-        });
-        blk.append(body);
-        $("#links").append($("<div/>").addClass("col-lg-2 col-md-3 col-sm-4 col-xs-6").append(blk));
-      });
-      // drag block headings to reorder
-      if (settings.links["edit"].dragdrop) {
-        $("#links").sortable({handle: ".panel-heading"}).on("sortupdate", function (e) {
-          var old = settings.links["content"];
-          settings.links["content"] = [];
-          $(".panel", this).each(function (i, blk) {
-            settings.links["content"].push(old[$(blk).data("pos")]);
-          });
-          populateLinks();
-          chrome.storage.local.set({"links": settings.links});
-        });
-      }
-      fixLinkHandling();
-    };
-    populateLinks();
     // generate editor modal
     $("#links-editor").on("show.bs.modal", function (e) {
       var i = $(this).data("block");
@@ -784,19 +577,7 @@ $(document).ready(function () {
         + "Head into Settings for more advanced options, where you can add bookmarks, history, apps, widgets, keyboard shortcuts and more.</span>");
       $("#alerts").append(alert);
     }
-    if (!settings.links["content"].length) {
-      var text = $("<span><strong>You don't have any links added yet!</strong>  Get started by <a>adding a new block</a>.</span>");
-      $("a", text).click(function (e) {
-        settings.links["content"].push({
-          title: "",
-          buttons: []
-        });
-        $("#links-editor").data("block", settings.links["content"].length - 1).modal("show");
-        populateLinks();
-        chrome.storage.local.set({"links": settings.links});
-      })
-      $("#alerts").append($("<div/>").addClass("alert alert-info").append(text));
-    }
+
     // switch to links page
     $("#menu-links").click(function (e) {
       $(".navbar-right li").removeClass("active");
@@ -805,51 +586,6 @@ $(document).ready(function () {
       $("#links").show();
     });
 
-    /**
-     * 填充设置
-     */
-    var populateSettings = function populateSettings() {
-      settingBookmarks.populate();
-      settingHistory.populate();
-      settingGeneral.populate();
-      settingStyle.populate();
-      $("#settings-links-edit-menu").prop("checked", settings.links["edit"].menu);
-      $("#settings-links-edit-dragdrop").prop("checked", settings.links["edit"].dragdrop);
-      $("#settings-links-behaviour-dropdownmiddle").prop("checked", settings.links["behaviour"].dropdownmiddle);
-
-
-
-      // highlight history permission status
-      chrome.permissions.contains({
-        permissions: ["history"]
-      }, function (has) {
-        if (has) {
-          $(".settings-perm-history").addClass("has-success");
-        } else {
-          $(".settings-perm-history").addClass("has-warning");
-          $("#settings-history-enable").prop("checked", false);
-        }
-      });
-
-
-      // highlight notif/basket permissions status
-      $(".settings-perm").each(function (i, group) {
-        var key = $(group).data("key");
-        chrome.permissions.contains({
-          origins: ajaxPerms[key]
-        }, function (has) {
-          if (has) {
-            $(group).addClass("has-success");
-          } else {
-            $(group).addClass("has-warning");
-            $("input[type=checkbox]", group).prop("checked", false);
-          }
-        })
-      });
-
-      $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
-
-    }
     // image初始化,根据配置的不同，显示不同信息
     switch (settings.style["background"].image) {
       case "":
@@ -861,210 +597,44 @@ $(document).ready(function () {
     }
     $(".ext-name").text(manif.name);
     $(".ext-ver").text(manif.version);
-    // reset modal on show
+    /*******************初始化设置面板默认信息**************************/
+    // 点击设置-个性化，进行填充设置
     $("#settings").on("show.bs.modal", function (e) {
       $("#settings-alerts").empty();
       $(".form-group", "#settings-tab-links").removeClass("has-success has-error");
       $("#settings-style-panel label.active").removeClass("active");
-      populateSettings();
+      settingLinks.populate();
+      settingBookmarks.populate();
+      settingHistory.populate();
+      settingGeneral.populate();
+      settingStyle.populate();
+      $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
       $($("#settings-tabs a")[0]).click();
     });
+    /*******************初始化事件绑定**************************/
     settingBookmarks.initEvent();
     settingGeneral.initEvent();
-
-    $("#settings-history-enable").change(function (e) {
-      $("#settings-alerts").empty();
-      // grant history permissions
-      if (this.checked) {
-        chrome.permissions.request({
-          permissions: ["history"]
-        }, function (success) {
-          if (success) {
-            $(".settings-perm-history").removeClass("has-warning").addClass("has-success");
-            $("#settings-history-limit").prop("disabled", false).parent().removeClass("text-muted");
-            $("#settings-history-limit-value").parent().removeClass("text-muted");
-          } else {
-            var text = "Permission denied for history.";
-            $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
-            $(this).prop("checked", false);
-          }
-        });
-      } else {
-        $("#settings-history-limit").prop("disabled", true).parent().addClass("text-muted");
-        $("#settings-history-limit-value").parent().addClass("text-muted");
-      }
-    });
-    $("#settings-history-limit").on("input change", function (e) {
-      $("#settings-history-limit-value").text($(this).val());
-    });
-    // 查询manifest.json的optional_permissions是否具有这个权限
-    $(".settings-perm input[type=checkbox]").change(function (e) {
-      $("#settings-alerts").empty();
-      // grant requried permissions for provider
-      var id = this.id;
-      var perms = ajaxPerms[$("#" + id).closest(".settings-perm").data("key")];
-      if (this.checked) {
-        // https://developer.chrome.com/apps/permissions#method-request
-        chrome.permissions.request({
-          origins: perms
-        }, function (success) {
-          var check = $("#" + id);
-          if (success) {
-            check.closest(".settings-perm").removeClass("has-warning").addClass("has-success");
-          } else {
-            var text = "Permission denied for " + perms.join(", ") + ".";
-            $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
-            check.prop("checked", false).change();
-          }
-        });
-      }
-    });
-    // enable fields from checkbox selection
-
-
-    $("#settings-general-apps").change(function (e) {
-      $("#settings-alerts").empty();
-      // grant history permissions
-      if (this.checked) {
-        chrome.permissions.request({
-          permissions: ["management"]
-        }, function (success) {
-          if (success) {
-            $(".settings-perm-management").removeClass("has-warning").addClass("has-success");
-            $("#settings-general-apps").prop("disabled", false).parent().removeClass("text-muted");
-          } else {
-            var text = "Permission denied for management.";
-            $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
-            $(this).prop("checked", false);
-          }
-        });
-      }
-    });
-    $("#settings-general-weather-show").change(function (e) {
-      $("#settings-general-weather-location, #settings-general-weather-celsius").prop("disabled", !this.checked);
-      if (this.checked) $("#settings-general-weather-location").focus();
-    });
-    $("#settings-general-weather-celsius").click(function (e) {
-      $(this).html("&deg;" + ($(this).text()[1] === "C" ? "F" : "C"));
-    });
-    // panel style group
-    $("#settings-style-panel label").click(function (e) {
-      $("input", this).prop("checked", true);
-    });
-    // background image selector
-    $("#settings-style-background-image").on("input change", function (e) {
-      // lose previous value on change
-      $(this).data("val", "").prop("placeholder", "(none)");
-      $(".settings-style-background-check").prop("disabled", !$(this).val()).next().toggleClass("text-muted", !$(this).val());
-    });
-    /***********************setting-style-background下拉框****************************************************************/
-    $("#settings-style-background-choose").click(function (e) {
-      // trigger hidden input field
-      $("#settings-alerts").empty();
-      $("#settings-style-background-file").click();
-    });
-    $("#settings-style-background-file").change(function (e) {
-      // if a file is selected
-      if (this.files.length) {
-        var file = this.files.item(0);
-        // if an image
-        if (file.type.match(/^image\//)) {
-          var reader = new FileReader;
-          reader.readAsDataURL(file);
-          reader.onload = function readerLoaded() {
-            $("#settings-style-background-image").data("val", reader.result).prop("placeholder", file.name).val("");
-            $("#settings-style-background-file").val("");
-          };
-        } else {
-          $("#settings-alerts").empty().append($("<div/>").addClass("alert alert-danger")
-            .text(file.name + " doesn't seem to be a valid image file."));
-        }
-      }
-    });
-    // clear image
-    $("#settings-style-background-none").click(function (e) {
-      $("#settings-style-background-image").data("val", "").prop("placeholder", "(none)").val("");
-      $(".settings-style-background-check").prop("disabled", true).next().addClass("text-muted");
-    });
-
-    // reset to default stripes
-    $("#settings-style-background-default").click(function (e) {
-      $("#settings-style-background-image").data("val", "../img/bg.png").prop("placeholder", "(default)").val("");
-      $("#settings-style-background-repeat").prop("checked", false);
-      $("#settings-style-background-centre").prop("checked", true);
-      $("#settings-style-background-fixed").prop("checked", false);
-      $("#settings-style-background-stretch").prop("checked", true);
-      $(".settings-style-background-check").prop("disabled", false).next().removeClass("text-muted");
-    });
-    // custom CSS editor
-    $("#settings-style-customcss-enable").change(function (e) {
-      $("#settings-style-customcss-content").prop("disabled", !$(this).prop("checked")).focus();
-    });
-    /*******************setting 点击保存按钮*************************************************/
+    settingHistory.initEvent();
+    settingStyle.initEvent();
+    /*******************setting 点击保存按钮**************************/
     $("#settings-save").click(function (e) {
+      // 标识是否删除权限失败
+      let revokeError = false;
+      $("#settings-alerts").empty();
+      // 点击按钮显示保存中。。
+      $("#settings-save").prop("disabled", true).empty().append(fa("spinner fa-spin", false)).append(" 保存中...");
+      // setting链接
+      settingLinks.save();
       // setting书签
-      settingBookmarks.save();
+      revokeError = settingBookmarks.save();
+      // setting历史
+      revokeError = settingHistory.save();
       // setting通用
-      settingGeneral.setTitleName(manif.name);// 避免调用save传入过多参数
-      settingGeneral.save();
+      revokeError = settingGeneral.save(manif.name);
       // setting样式
       settingStyle.save();
 
-      $("#settings-alerts").empty();
-      $("#settings-save").prop("disabled", true).empty().append(fa("spinner fa-spin", false)).append(" Saving...");
-      settings.links["edit"] = {
-        menu: $("#settings-links-edit-menu").prop("checked"),
-        dragdrop: $("#settings-links-edit-dragdrop").prop("checked")
-      };
-      settings.links["behaviour"].dropdownmiddle = $("#settings-links-behaviour-dropdownmiddle").prop("checked");
-
-      if (!settings.bookmarks["enable"]) {
-        chrome.permissions.remove({
-          permissions: ["bookmarks"]
-        }, function (success) {
-          if (!success) revokeError = true;
-        });
-      }
-
-      settings.history["enable"] = $("#settings-history-enable").prop("checked");
-      if (!settings.history["enable"]) {
-        chrome.permissions.remove({
-          permissions: ["history"]
-        }, function (success) {
-          if (!success) revokeError = true;
-        });
-      }
-      settings.history["limit"] = parseInt($("#settings-history-limit").val());
-      var revoke = function revoke(key) {
-        chrome.permissions.remove({
-          origins: ajaxPerms[key]
-        }, function (success) {
-          if (!success) revokeError = true;
-        });
-      }
-      var revokeError = false;
-
       settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
-
-
-      settings.general["apps"] = $("#settings-general-apps").prop("checked");
-      if (!settings.general["apps"]) {
-        // 注意permissions里面的权限是不可remove的，只有options.permissions可以删除
-        chrome.permissions.remove({
-          permissions: ["management"]
-        }, function (success) {
-          if (!success) revokeError = true;
-        });
-      }
-      settings.general["weather"] = {
-        show: $("#settings-general-weather-show").prop("checked"),
-        location: $("#settings-general-weather-location").val(),
-        celsius: $("#settings-general-weather-celsius").text()[1] === "C"
-      };
-      if (!settings.general["weather"].location) settings.general["weather"].show = false;
-      // if (!settings.general["weather"].show) revoke("weather");
-      settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
-      // if (!settings.general["proxy"]) revoke("proxy");
 
       $("#settings").on("hide.bs.modal", function (e) {
         e.preventDefault();
