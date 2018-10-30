@@ -230,156 +230,19 @@ $(document).ready(function () {
     settings = $.extend(true, {}, settings, store);
     // apply custom styles
     document.title = settings.general["title"];
+    var bookmarksCallbacks = [];
     /***********************setting 初始化*********************************/
-    const settingBookmarks = new SettingBookmarks(settings.bookmarks);
+    // 设置（书签）
+    const settingBookmarks = new SettingBookmarks(settings, bookmarksCallbacks);
     settingBookmarks.init();
-    const settingGeneral = new SettingGeneral(settings.general);
+    // 设置（通用）
+    const settingGeneral = new SettingGeneral(settings.general, settings);
+    settingGeneral.init();
     // 设置（样式）
     const settingStyle = new SettingStyle(settings.style);
     settingStyle.init();
 
-    // show current time in navbar
-    if (settings.general["clock"].show) {
-      var time = $("<div/>").attr("id", "time").addClass("navbar-brand");
-      $(".navbar-header").append($("<a/>").attr("href", "http://time.is").append(time));
-      var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-      var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      var tick = function tick() {
-        var now = new Date();
-        var hours = now.getHours();
-        var pm = "";
-        if (settings.general["clock"].twentyfour) {
-          hours = pad(hours);
-        } else {
-          pm = " AM";
-          if (hours === 0 || hours > 12) {
-            hours = (hours + 12) % 24;
-            pm = " PM";
-          }
-        }
-        time.text(hours + ":" + pad(now.getMinutes()) + (settings.general["clock"].seconds ? ":" + pad(now.getSeconds()) : "") + pm)
-          .attr("title", days[now.getDay()] + " " + now.getDate() + " " + months[now.getMonth()] + " " + now.getFullYear());
-      }
-      tick();
-      setInterval(tick, 1000);
-    }
-    // show stopwatch / countdown timer
-    if (settings.general["timer"].stopwatch || settings.general["timer"].countdown) {
-      var tmRoot = $("<li/>").addClass("dropdown");
-      var tmLink = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown");
-      tmRoot.append(tmLink);
-      var tmMenu = $("<ul/>").addClass("dropdown-menu");
-      tmRoot.append(tmMenu);
-      var reset = function reset() {
-        tmLink.empty().append(fa("clock-o", false)).append(label("No timers ", settings)).append($("<b/>").addClass("caret"));
-        if (!settings.style["topbar"].labels) {
-          tmLink.prop("title", "No timers");
-        }
-        ;
-        tmMenu.empty();
-        var interval = 0;
-        if (settings.general["timer"].stopwatch) {
-          tmMenu.append($("<li/>").append($("<a/>").append("Start stopwatch").click(function (e) {
-            var time = 0;
-            var stopwatch = function stopwatch() {
-              time++;
-              if (time) {
-                var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                $($("span", tmLink)[0]).text(text);
-                document.title = text;
-              } else {
-                clearInterval(interval);
-                document.title = settings.general["title"];
-                reset();
-              }
-            };
-            // stopwatch menu
-            tmMenu.empty().append($("<li/>").append($("<a/>").data("paused", false).append(fa("pause")).append(" Pause").click(function (e) {
-              if ($(this).data("paused")) {
-                interval = setInterval(stopwatch, 1000);
-                $("i", tmLink).addClass("fa-spin");
-                $(this).data("paused", false).empty().append(fa("pause")).append(" Pause");
-              } else {
-                clearInterval(interval);
-                $("i", tmLink).removeClass("fa-spin");
-                $(this).data("paused", true).empty().append(fa("play")).append(" Resume");
-              }
-            }))).append($("<li/>").append($("<a/>").append(fa("stop")).append(" Cancel").click(function (e) {
-              clearInterval(interval);
-              document.title = settings.general["title"];
-              reset();
-            })));
-            // show timer
-            var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-            tmLink.empty().prop("title", "").append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<b/>").addClass("caret"));
-            document.title = text;
-            interval = setInterval(stopwatch, 1000);
-          })));
-        }
-        if (settings.general["timer"].countdown) {
-          tmMenu.append($("<li/>").append($("<a/>").append("Start countdown").click(function (e) {
-            // select time
-            var time = prompt("Enter a time to countdown from (e.g. 45s, 2m30s).", "5m");
-            if (!time) return;
-            var parts = time.replace(/[^0-9hms]/g, "").match(/([0-9]+[hms])/g);
-            var time = 0;
-            for (var i in parts) {
-              var part = parts[i];
-              var params = [parseInt(part.substr(0, part.length - 1)), part.charAt(part.length - 1)];
-              switch (params[1]) {
-                case "h":
-                  time += params[0] * 60 * 60;
-                  break;
-                case "m":
-                  time += params[0] * 60;
-                  break;
-                case "s":
-                  time += params[0];
-                  break;
-              }
-            }
-            var countdown = function countdown() {
-              if (time) {
-                time--;
-                var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                $($("span", tmLink)[0]).text(text);
-                document.title = text;
-              } else {
-                if (settings.general["timer"].beep) {
-                  new Audio("../mp3/alarm.mp3").play();
-                }
-                clearInterval(interval);
-                document.title = settings.general["title"];
-                reset();
-              }
-            };
-            // countdown menu
-            tmMenu.empty().append($("<li/>").append($("<a/>").data("paused", false).append(fa("pause")).append(" Pause").click(function (e) {
-              if ($(this).data("paused")) {
-                interval = setInterval(countdown, 1000);
-                $("i", tmLink).addClass("fa-spin");
-                $(this).data("paused", false).empty().append(fa("pause")).append(" Pause");
-              } else {
-                clearInterval(interval);
-                $("i", tmLink).removeClass("fa-spin");
-                $(this).data("paused", true).empty().append(fa("play")).append(" Resume");
-              }
-            }))).append($("<li/>").append($("<a/>").append(fa("stop")).append(" Cancel").click(function (e) {
-              clearInterval(interval);
-              document.title = settings.general["title"];
-              reset();
-            })));
-            // show timer
-            var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-            tmLink.empty().prop("title", "").append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<b/>").addClass("caret"));
-            document.title = text;
-            interval = setInterval(countdown, 1000);
-          })));
-        }
-      };
-      reset();
-      $("#menu-left").append(tmRoot);
-    }
+
     // show notepad
     if (settings.general["notepad"].show) {
       var npRoot = $("<li/>").addClass("dropdown");
@@ -1064,7 +927,7 @@ $(document).ready(function () {
     Bookmarks: lightweight bookmark browser
     bookmarks：init
     */
-    settingBookmarks.init(settings.style, ctrlDown);
+
 
     /*
     Apps: installed Chrome apps drop-down
@@ -1320,10 +1183,8 @@ $(document).ready(function () {
       }
     });
     // enable fields from checkbox selection
-    $("#settings-general-clock-show").change(function (e) {
-      $("#settings-general-clock-twentyfour, #settings-general-clock-seconds").prop("disabled", !this.checked)
-        .parent().toggleClass("text-muted", !this.checked);
-    });
+    // settingGeneral.init();
+
     $("#settings-general-timer-countdown").change(function (e) {
       $("#settings-general-timer-beep").prop("disabled", !this.checked)
         .parent().toggleClass("text-muted", !this.checked);
@@ -1722,15 +1583,15 @@ $(document).ready(function () {
       });
     }
     ;
-    // bookmarksCallbacks.push(function () {
-    //   $("#menu-bookmarks").click(setupHotkeys);
-    //   var label = $("#menu-bookmarks .menu-label");
-    //   if (settings.style["topbar"].labels) {
-    //     label.show();
-    //   } else {
-    //     label.parent().attr("title", label.text());
-    //   }
-    // });
+    bookmarksCallbacks.push(function () {
+      $("#menu-bookmarks").click(setupHotkeys);
+      var label = $("#menu-bookmarks .menu-label");
+      if (settings.style["topbar"].labels) {
+        label.show();
+      } else {
+        label.parent().attr("title", label.text());
+      }
+    });
     weatherCallbacks.push(function () {
       if (settings.style["topbar"].labels) $("#menu-weather .menu-label").show();
     });
