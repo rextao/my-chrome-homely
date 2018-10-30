@@ -96,6 +96,10 @@ SettingBookmarks.prototype = {
     $('#settings-bookmarks-foldercontents').prop('checked', this.settings.bookmarks['foldercontents']);
 
     $('#settings-bookmarks-split').prop('checked', this.settings.bookmarks['split']);
+    $("#settings-bookmarks-merge").prop("checked", this.settings.bookmarks["merge"]);
+    $("#settings-bookmarks-above").prop("checked", this.settings.bookmarks["above"])
+      .prop("disabled", !(this.settings.bookmarks["enable"] && this.settings.bookmarks["merge"]))
+      .parent().toggleClass("text-muted", !(this.settings.bookmarks["enable"] && this.settings.bookmarks["merge"]));
     // ---------启用书签视图下方的联动
     $('#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, #settings-bookmarks-merge,.settings-bookmarks-layout-hook input')
       .prop('disabled', !this.settings.bookmarks['enable']).parent().toggleClass('text-muted', !this.settings.bookmarks['enable']);
@@ -109,7 +113,8 @@ SettingBookmarks.prototype = {
     this.settings.bookmarks['bookmarklets'] = $('#settings-bookmarks-bookmarklets').prop('checked');
     this.settings.bookmarks['foldercontents'] = $('#settings-bookmarks-foldercontents').prop('checked');
     this.settings.bookmarks['split'] = $('#settings-bookmarks-split').prop('checked');
-
+    this.settings.bookmarks["merge"] = $("#settings-bookmarks-merge").prop("checked");
+    this.settings.bookmarks["above"] = $("#settings-bookmarks-above").prop("checked");
   },
   // setting面板，书签-启用书签视图的checkbox
   enableChangeHandler(e) {

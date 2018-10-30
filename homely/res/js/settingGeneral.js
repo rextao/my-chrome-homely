@@ -26,6 +26,39 @@ SettingGeneral.prototype = {
     $("#settings-general-clock-seconds").prop("checked", this.general["clock"].seconds)
       .prop("disabled", !this.general["clock"].show)
       .parent().toggleClass("text-muted", !this.general["clock"].show);
+    // --------定时器
+    $("#settings-general-timer-stopwatch").prop("checked", this.general["timer"].stopwatch);
+    $("#settings-general-timer-countdown").prop("checked", this.general["timer"].countdown);
+    $("#settings-general-timer-beep").prop("checked", this.general["timer"].beep)
+      .prop("disabled", !this.general["timer"].countdown)
+      .parent().toggleClass("text-muted", !this.general["timer"].countdown);
+    // --------记事本
+    $("#settings-general-notepad-show").prop("checked", this.general["notepad"].show);
+    // --------扩展
+    $("#settings-general-apps").prop("checked", this.general["apps"]);
+    // --------扩展（根据权限，对文字颜色进行控制）
+    chrome.permissions.contains({
+      permissions: ["management"]
+    }, function (has) {
+      if (has) {
+        $(".settings-perm-management").addClass("has-success");
+      } else {
+        $(".settings-perm-management").addClass("has-warning");
+        $("#settings-general-apps").prop("checked", false);
+      }
+    });
+    // --------天气
+    $("#settings-general-weather-show").prop("checked", this.general["weather"].show);
+    // --------天气（地点）
+    $("#settings-general-weather-location").val(this.general["weather"].location)
+      .prop("disabled", !this.general["weather"].show)
+      .parent().toggleClass("text-muted", !this.general["weather"].show);
+    // --------天气(天气单位)
+    $("#settings-general-weather-celsius").html("&deg;" + (this.general["weather"].celsius ? "C" : "F"))
+      .prop("disabled", !this.general["weather"].show);
+    // --------代理
+    $("#settings-general-proxy").prop("checked", this.general["proxy"]);
+
   },
 
   // 设置面板，点击保存时
@@ -37,6 +70,12 @@ SettingGeneral.prototype = {
       twentyfour: $("#settings-general-clock-twentyfour").prop("checked"),
       seconds: $("#settings-general-clock-seconds").prop("checked")
     };
+    this.general["timer"] = {
+      stopwatch: $("#settings-general-timer-stopwatch").prop("checked"),
+      countdown: $("#settings-general-timer-countdown").prop("checked"),
+      beep: $("#settings-general-timer-beep").prop("checked")
+    };
+    this.general["notepad"].show = $("#settings-general-notepad-show").prop("checked");
   },
   //  -------------设置title名字
   setTitleName(manifname){
