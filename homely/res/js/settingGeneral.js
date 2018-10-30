@@ -77,6 +77,13 @@ SettingGeneral.prototype = {
     };
     this.general["notepad"].show = $("#settings-general-notepad-show").prop("checked");
   },
+  // 初始化setting面板的一些响应事件
+  initEvent(){
+    $("#settings-general-timer-countdown").change(function (e) {
+      $("#settings-general-timer-beep").prop("disabled", !this.checked)
+        .parent().toggleClass("text-muted", !this.checked);
+    });
+  },
   //  -------------设置title名字
   setTitleName(manifname){
     // manifname为manifest文件中的name值
