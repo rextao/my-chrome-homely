@@ -9,6 +9,69 @@ const SettingBookmarks = function (settings, callbacks) {
 };
 SettingBookmarks.prototype = {
   init() {
+    // 不启用，则menu不显示，书签导航
+    if (!this.settings.bookmarks["enable"]) $("#menu-links").hide();
+    // 如果启用书签，调用
+    this.enableBookmarks();
+    // 根据值，配置链接视图与书签视图先后
+    if (this.settings.bookmarks["enable"] && this.settings.bookmarks["merge"] && this.settings.bookmarks["above"]) $("#links").before($("#bookmarks"));
+  },
+  populate() {
+    // 书签
+    // ------检查扩展是否有指定的权限
+    chrome.permissions.contains({
+      permissions: ['bookmarks']
+    }, function (has) {
+      if (has) {
+        // 根据是否启用给此行不同颜色以标识
+        $('.settings-perm-bookmarks').addClass('has-success');
+      } else {
+        $('.settings-perm-bookmarks').addClass('has-warning');
+        $('#settings-bookmarks-enable').prop('checked', false);
+      }
+    });
+    // ------配置是否点击了启用按钮
+    $('#settings-bookmarks-enable').prop('checked', this.settings.bookmarks['enable']);
+    // ------布局方式
+    $(`.settings-bookmarks-layout-hook input[value=${this.settings.bookmarks['layout']}]`).prop('checked', true);
+
+    //-----------------------文件式布局-----------------
+    // 书签显示方式
+    $('#settings-bookmarks-bookmarklets').prop('checked', this.settings.bookmarks['bookmarklets']);
+    // 文件夹，点击打开下面全部网页
+    $('#settings-bookmarks-foldercontents').prop('checked', this.settings.bookmarks['foldercontents']);
+
+    $('#settings-bookmarks-split').prop('checked', this.settings.bookmarks['split']);
+    $("#settings-bookmarks-merge").prop("checked", this.settings.bookmarks["merge"]);
+    $("#settings-bookmarks-above").prop("checked", this.settings.bookmarks["above"])
+      .prop("disabled", !(this.settings.bookmarks["enable"] && this.settings.bookmarks["merge"]))
+      .parent().toggleClass("text-muted", !(this.settings.bookmarks["enable"] && this.settings.bookmarks["merge"]));
+    // ---------启用书签视图下方的联动
+    $('#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, #settings-bookmarks-merge,.settings-bookmarks-layout-hook input')
+      .prop('disabled', !this.settings.bookmarks['enable']).parent().toggleClass('text-muted', !this.settings.bookmarks['enable']);
+    // 判断布局方式是否为folder
+    const islayoutFloder = this.settings.bookmarks['layout'] === 'folder';
+    $('#settings-bookmarks-layout-folder ').toggleClass('hide', !islayoutFloder);
+  },
+  save() {
+    this.settings.bookmarks['enable'] = $('#settings-bookmarks-enable').prop('checked');
+    this.settings.bookmarks['layout'] = $('.settings-bookmarks-layout-hook input:checked').prop('value');
+    this.settings.bookmarks['bookmarklets'] = $('#settings-bookmarks-bookmarklets').prop('checked');
+    this.settings.bookmarks['foldercontents'] = $('#settings-bookmarks-foldercontents').prop('checked');
+    this.settings.bookmarks['split'] = $('#settings-bookmarks-split').prop('checked');
+    this.settings.bookmarks["merge"] = $("#settings-bookmarks-merge").prop("checked");
+    this.settings.bookmarks["above"] = $("#settings-bookmarks-above").prop("checked");
+  },
+  initEvent(){
+    $("#settings-bookmarks-enable").change(this.enableChangeHandler);
+    $(".settings-bookmarks-layout-hook").change(this.layoutHookChangeHander);
+    $("#settings-bookmarks-merge").change(function (e) {
+      $("#settings-bookmarks-above").prop("disabled", !($("#settings-bookmarks-enable").prop("checked") && this.checked))
+        .parent().toggleClass("text-muted", !($("#settings-bookmarks-enable").prop("checked") && this.checked));
+    });
+  },
+
+  enableBookmarks(){
     const that = this;
     if (this.settings.bookmarks["enable"]) {
       chrome.permissions.contains({
@@ -69,52 +132,6 @@ SettingBookmarks.prototype = {
         }
       });
     }
-  },
-  populate() {
-    // 书签
-    // ------检查扩展是否有指定的权限
-    chrome.permissions.contains({
-      permissions: ['bookmarks']
-    }, function (has) {
-      if (has) {
-        // 根据是否启用给此行不同颜色以标识
-        $('.settings-perm-bookmarks').addClass('has-success');
-      } else {
-        $('.settings-perm-bookmarks').addClass('has-warning');
-        $('#settings-bookmarks-enable').prop('checked', false);
-      }
-    });
-    // ------配置是否点击了启用按钮
-    $('#settings-bookmarks-enable').prop('checked', this.settings.bookmarks['enable']);
-    // ------布局方式
-    $(`.settings-bookmarks-layout-hook input[value=${this.settings.bookmarks['layout']}]`).prop('checked', true);
-
-    //-----------------------文件式布局-----------------
-    // 书签显示方式
-    $('#settings-bookmarks-bookmarklets').prop('checked', this.settings.bookmarks['bookmarklets']);
-    // 文件夹，点击打开下面全部网页
-    $('#settings-bookmarks-foldercontents').prop('checked', this.settings.bookmarks['foldercontents']);
-
-    $('#settings-bookmarks-split').prop('checked', this.settings.bookmarks['split']);
-    $("#settings-bookmarks-merge").prop("checked", this.settings.bookmarks["merge"]);
-    $("#settings-bookmarks-above").prop("checked", this.settings.bookmarks["above"])
-      .prop("disabled", !(this.settings.bookmarks["enable"] && this.settings.bookmarks["merge"]))
-      .parent().toggleClass("text-muted", !(this.settings.bookmarks["enable"] && this.settings.bookmarks["merge"]));
-    // ---------启用书签视图下方的联动
-    $('#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, #settings-bookmarks-merge,.settings-bookmarks-layout-hook input')
-      .prop('disabled', !this.settings.bookmarks['enable']).parent().toggleClass('text-muted', !this.settings.bookmarks['enable']);
-    // 判断布局方式是否为folder
-    const islayoutFloder = this.settings.bookmarks['layout'] === 'folder';
-    $('#settings-bookmarks-layout-folder ').toggleClass('hide', !islayoutFloder);
-  },
-  save() {
-    this.settings.bookmarks['enable'] = $('#settings-bookmarks-enable').prop('checked');
-    this.settings.bookmarks['layout'] = $('.settings-bookmarks-layout-hook input:checked').prop('value');
-    this.settings.bookmarks['bookmarklets'] = $('#settings-bookmarks-bookmarklets').prop('checked');
-    this.settings.bookmarks['foldercontents'] = $('#settings-bookmarks-foldercontents').prop('checked');
-    this.settings.bookmarks['split'] = $('#settings-bookmarks-split').prop('checked');
-    this.settings.bookmarks["merge"] = $("#settings-bookmarks-merge").prop("checked");
-    this.settings.bookmarks["above"] = $("#settings-bookmarks-above").prop("checked");
   },
   // setting面板，书签-启用书签视图的checkbox
   enableChangeHandler(e) {
