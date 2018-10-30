@@ -17,5 +17,10 @@
     - 自定义css，即是将css.val()后添加到style中，然后append到head
 1. 通用：
     - chrome.runtime.getManifest()：返回文件manifest详细信息
+    - 根据官网api控制扩展
+    - 提供一个外网api，可以获取天气与ip，利用ajax请求数据
+1. 历史：
+    - 直接使用input,type=range实现简单的控制条
 1. 书签：
     - 注意toggleClass，有第二个参数，规定是移除还是添加样式
+    - 提供访问chrome://extensions/的方式 ，用a标签不行，需要使用chrome.tabs.create或chrome.tabs.update
