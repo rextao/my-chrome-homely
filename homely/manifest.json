@@ -19,16 +19,15 @@
     },
     "permissions": [
         "fontSettings",
-        "storage",
-        "management",
-        "https://ticktick.com/",
-        "http://api.openweathermap.org/",
-        "http://www.whatismyproxy.com/"
+        "storage"
     ],
     "optional_permissions": [
         "bookmarks",
         "history",
-        "management"
+        "management",
+        "https://ticktick.com/",
+        "http://api.openweathermap.org/",
+        "http://www.whatismyproxy.com/"
     ],
     "icons": {
         "16": "res/img/icon-16.png",
