@@ -9,7 +9,10 @@ SettingGeneral.prototype = {
     // 初始化时钟
     this.initClock();
     this.initClockEvent();
+    // 计时器
     this.initStopWatch();
+    // 记事本
+    this.initNotePad();
   },
   // 打开设置面板时，初始化设置面板的一些值
   populate(){
@@ -197,6 +200,94 @@ SettingGeneral.prototype = {
       reset();
       $("#menu-left").append(tmRoot);
     }
+  },
+  // 记事本
+  // 主要是将内容存储在 chrome.storage.local
+  initNotePad(){
+    if (this.general["notepad"].show) {
+      const that = this;
+      var npRoot = $("<li/>").addClass("dropdown");
+      var npLink = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown")
+        .append(tools.fa("edit", false)).append(tools.label("记事本", this.settings)).append(" ").append($("<b/>").addClass("caret"));
+      npRoot.append(npLink);
+      var npMenu = $("<ul/>").addClass("dropdown-menu");
+      var notepad = $("<textarea/>").attr("id", "notepad").attr("rows", 10).addClass("form-control notepad-saved");
+      var timeout = 0;
+      // 利用input事件，实现类似输入完保存的效果，定时器往localstorage存储
+      notepad.val(that.general["notepad"].content).on("input", function (e) {
+        notepad.removeClass("notepad-saved");
+        if (timeout) clearTimeout(timeout);
+        var content = notepad.val();
+        // 页面加载时，会自动从storage中读取settings，写的内容保存在settings中
+        timeout = setTimeout(function () {
+          that.general["notepad"].content = content;
+          chrome.storage.local.set({general: that.general});
+          notepad.addClass("notepad-saved");
+        }, 500);
+      }).click(function (e) {
+        e.stopPropagation();
+      });
+      npMenu.append($("<li/>").append(notepad));
+      npRoot.append(npMenu);
+      $("#menu-left").append(npRoot);
+    }
+  },
+  // 显示扩展
+  // fixLinkHandling为一个处理chrome://extensions/这样的连接，可以用ctrl+左键在新标签点开
+  initExtensions(fixLinkHandling){
+    /**
+     * settings-general-apps，改为获取扩展，app使用的不多
+     * chrome.extension.inIncognitoContext：true表示，content脚本运行在隐藏模式下，
+     */
+    if (this.general["apps"] && !chrome.extension.inIncognitoContext) {
+      chrome.permissions.contains({
+        permissions: ["management"]
+      }, function (has) {
+        if (!has) {
+          settings.general["apps"] = false;
+          return;
+        }
+        // 获取全部插件
+        chrome.management.getAll(function (apps) {
+          let html = '';
+          // 循环显示当前扩展
+          $.each(apps, function (i, app) {
+            const fa = app.enabled ? 'fa-check' : 'fa-close';
+            const textColor  = app.enabled ? 'text-success' : 'text-danger';
+            html += `<li>
+                        <a id="${app.id}" href="" >
+                            <span class="fa ${fa} ${textColor}"></span>
+                            <span class="${textColor}">${app.name}</span>
+                        </a>
+                     </li>`;
+          });
+          $("#apps-list").append(html);
+          // 扩展的点击事件
+          $("#apps-list a").on('click', function (e) {
+            e.preventDefault();
+            const id = $(this).attr('id');
+            chrome.management.get(id, function(item){
+              // 扩展当前状态
+              const enabled = item.enabled;
+              // 启用或禁用插件,!enabled为点击之后的状态
+              chrome.management.setEnabled(id, !enabled,function () {
+                // alert为了警醒一下
+                alert(`${item.name}已经${(!enabled ? '启用':'禁用')}`);
+                $('#'+id).find('span').toggleClass('text-success', !enabled).toggleClass('text-danger', enabled);
+                $('#'+id).find('.fa').toggleClass('fa-check', !enabled).toggleClass('fa-close', enabled);
+              });
+            })
+          });
+          var all = $("<a/>").attr("href", "chrome://extensions").addClass("link-chrome").append(tools.fa("th")).append(" 显示全部扩展");
+          var allCont = $("<li/>").append(all);
+          fixLinkHandling(allCont);
+          var store = $("<a/>").attr("href", "https://chrome.google.com/webstore");
+          $("#apps-list").append($("<li/>").addClass("divider"))
+            .append(allCont)
+            .append($("<li/>").append(store.append(tools.fa("shopping-cart")).append(" 谷歌商城")));
+          $("#menu-apps").show();
+        });
+      });
+    }
   }
-
 };

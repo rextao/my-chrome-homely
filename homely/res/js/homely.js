@@ -231,6 +231,35 @@ $(document).ready(function () {
     // apply custom styles
     document.title = settings.general["title"];
     var bookmarksCallbacks = [];
+    // 监控ctrl以及，可以使chrome://开头链接正常打开
+    var ctrlDown = false;
+    $(window).keydown(function (e) {
+      if (e.keyCode === 17) ctrlDown = true;
+    }).keyup(function (e) {
+      if (e.keyCode === 17) ctrlDown = false;
+    });
+    // special link handling
+    var fixLinkHandling = function fixLinkHandling(context) {
+      // open Chrome links via Tabs API
+      $(".link-chrome", context).off("click").click(function (e) {
+        // normal click, not external
+        if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
+          chrome.tabs.update({url: this.href});
+          e.preventDefault();
+          // middle click, Ctrl+click, or set as external
+        } else if (e.which <= 2) {
+          chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
+          e.preventDefault();
+        }
+      });
+      // always open external links in a new tab
+      $(".link-external", context).off("click").click(function (e) {
+        if (!$(this).hasClass("link-chrome")) {
+          chrome.tabs.create({url: this.href, active: true});
+          e.preventDefault();
+        }
+      });
+    };
     /***********************setting 初始化*********************************/
     // 设置（书签）
     const settingBookmarks = new SettingBookmarks(settings, bookmarksCallbacks);
@@ -238,36 +267,12 @@ $(document).ready(function () {
     // 设置（通用）
     const settingGeneral = new SettingGeneral(settings.general, settings);
     settingGeneral.init();
+    settingGeneral.initExtensions(fixLinkHandling);
     // 设置（样式）
     const settingStyle = new SettingStyle(settings.style);
     settingStyle.init();
 
 
-    // show notepad
-    if (settings.general["notepad"].show) {
-      var npRoot = $("<li/>").addClass("dropdown");
-      var npLink = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown")
-        .append(fa("edit", false)).append(label("Notepad", settings)).append(" ").append($("<b/>").addClass("caret"));
-      npRoot.append(npLink);
-      var npMenu = $("<ul/>").addClass("dropdown-menu");
-      var notepad = $("<textarea/>").attr("id", "notepad").attr("rows", 10).addClass("form-control notepad-saved");
-      var timeout = 0;
-      notepad.val(settings.general["notepad"].content).on("input", function (e) {
-        notepad.removeClass("notepad-saved");
-        if (timeout) clearTimeout(timeout);
-        var content = notepad.val();
-        timeout = setTimeout(function () {
-          settings.general["notepad"].content = content;
-          chrome.storage.local.set({general: settings.general});
-          notepad.addClass("notepad-saved");
-        }, 500);
-      }).click(function (e) {
-        e.stopPropagation();
-      });
-      npMenu.append($("<li/>").append(notepad));
-      npRoot.append(npMenu);
-      $("#menu-left").append(npRoot);
-    }
     // get weather
     var weatherCallbacks = [];
     if (settings.general["weather"].show && !chrome.extension.inIncognitoContext) {
@@ -357,35 +362,7 @@ $(document).ready(function () {
     Links: customizable grid of links and menus
     */
     if (settings.bookmarks["enable"] && settings.bookmarks["merge"] && settings.bookmarks["above"]) $("#links").before($("#bookmarks"));
-    // monitor Ctrl key to open links in a new tab
-    var ctrlDown = false;
-    $(window).keydown(function (e) {
-      if (e.keyCode === 17) ctrlDown = true;
-    }).keyup(function (e) {
-      if (e.keyCode === 17) ctrlDown = false;
-    });
-    // special link handling
-    var fixLinkHandling = function fixLinkHandling(context) {
-      // open Chrome links via Tabs API
-      $(".link-chrome", context).off("click").click(function (e) {
-        // normal click, not external
-        if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
-          chrome.tabs.update({url: this.href});
-          e.preventDefault();
-          // middle click, Ctrl+click, or set as external
-        } else if (e.which <= 2) {
-          chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
-          e.preventDefault();
-        }
-      });
-      // always open external links in a new tab
-      $(".link-external", context).off("click").click(function (e) {
-        if (!$(this).hasClass("link-chrome")) {
-          chrome.tabs.create({url: this.href, active: true});
-          e.preventDefault();
-        }
-      });
-    };
+
     if (!settings.bookmarks["enable"]) $("#menu-links").hide();
     var populateLinks = function populateLinks() {
       $("#alerts, #links").empty();
@@ -929,43 +906,6 @@ $(document).ready(function () {
     */
 
 
-    /*
-    Apps: installed Chrome apps drop-down
-    */
-    if (settings.general["apps"] && !chrome.extension.inIncognitoContext) {
-      chrome.permissions.contains({
-        permissions: ["management"]
-      }, function (has) {
-        if (!has) {
-          settings.general["apps"] = false;
-          return;
-        }
-        chrome.management.getAll(function (apps) {
-          var show = false;
-          $.each(apps, function (i, app) {
-            if (app.enabled && ["hosted_app", "packaged_app", "legacy_packaged_app"].indexOf(app.type) > -1) {
-              var link = $("<a/>").text(app.name).click(function (e) {
-                chrome.management.launchApp(app.id);
-                e.preventDefault();
-              });
-              if (app.appLaunchUrl) link.attr("href", app.appLaunchUrl);
-              $("#apps-list").append($("<li/>").append(link));
-              show = true;
-            }
-          });
-          if (show) {
-            var all = $("<a/>").attr("href", "chrome://apps").addClass("link-chrome").append(fa("th")).append(" View all apps");
-            var allCont = $("<li/>").append(all);
-            fixLinkHandling(allCont);
-            var store = $("<a/>").attr("href", "https://chrome.google.com/webstore");
-            $("#apps-list").append($("<li/>").addClass("divider"))
-              .append(allCont)
-              .append($("<li/>").append(store.append(fa("shopping-cart")).append(" Chrome Web Store")));
-            $("#menu-apps").show();
-          }
-        });
-      });
-    }
     /*
     History: quick drop-down of recent pages
     */
