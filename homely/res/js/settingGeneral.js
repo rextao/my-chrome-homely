@@ -289,5 +289,96 @@ SettingGeneral.prototype = {
         });
       });
     }
+  },
+  // 天气
+  initWeather(weatherCallbacks,ajaxPerms){
+    const that = this;
+    if (this.general["weather"].show && !chrome.extension.inIncognitoContext) {
+      chrome.permissions.contains({
+        origins: ajaxPerms["weather"]
+      }, function (has) {
+        if (!has || !that.general["weather"].location) {
+          that.general["weather"].show = false;
+          return;
+        }
+        // 判断离线还是在线
+        if (navigator.onLine) {
+          // 把字符串作为 URI 组件进行编码
+          var loc = encodeURIComponent(that.general["weather"].location);
+          var unit = (that.general["weather"].celsius ? "metric" : "imperial");
+          $.ajax({
+            url: "http://api.openweathermap.org/data/2.5/weather?APPID=833b8b2bb6161e0c2b43dab37d0c93a7&q=" + loc + "&units=" + unit,
+            success: function success(resp, stat, xhr) {
+              var conds = [];
+              $.each(resp.weather, function (i, item) {
+                conds.push(item.description);
+              });
+              var temp = Math.round(resp.main.temp);
+              var title = resp.name + ": " + tools.cap((that.settings.style["topbar"].labels ? "" : temp + " degrees, ") + conds.join(", "));
+              var link = $("<a/>").attr("id", "menu-weather").attr("href", "http://www.openweathermap.org/city/" + resp.id)
+                .attr("title", title).hide();
+              link.append(tools.fa("cloud", false)).append(tools.label(temp + "&deg;" + (unit === "metric" ? "C" : "F"), that.settings));
+              // always show before proxy link if that loads first
+              if ($("#menu-proxy").length) {
+                $("#menu-proxy").before($("<li/>").append(link));
+              } else {
+                $("#menu-left").append($("<li/>").append(link));
+              }
+              link.fadeIn();
+              // return any pending callbacks
+              for (var i in weatherCallbacks) {
+                weatherCallbacks[i].call();
+              }
+            }
+          });
+        }
+      });
+    }
+  },
+  // 代理
+  initProxy(proxyCallbacks, ajaxPerms){
+    const that = this;
+    if (that.general["proxy"]) {
+      chrome.permissions.contains({
+        origins: ajaxPerms["proxy"]
+      }, function (has) {
+        if (!has) {
+          that.general["proxy"] = false;
+          return;
+        }
+        var link = $("<a/>").attr("id", "menu-proxy");
+        if (navigator.onLine) {
+          $.ajax({
+            url: "http://www.whatismyproxy.com",
+            success: function success(resp, stat, xhr) {
+              var params = $(".h1", resp).text().split("IP address: ");
+              link.attr("href", "http://www.whatismyproxy.com").hide();
+              link.append(tools.fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(tools.label(params[1], settings));
+              $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
+              link.fadeIn();
+            },
+            error: function (xhr, stat, err) {
+              link.append(tools.fa("power-off", false)).append(tools.label("No connection", that.settings)).hide();
+              $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
+              link.fadeIn();
+            },
+            complete: function (xhr, stat) {
+              // return any pending callbacks
+              for (var i in proxyCallbacks) {
+                proxyCallbacks[i].call();
+              }
+            }
+          });
+        } else {
+          link.append(fa("power-off", false)).append(label("No connection", settings)).hide();
+          $("#menu-left").append($("<li/>").append(link));
+          link.fadeIn();
+          // return any pending callbacks
+          for (var i in proxyCallbacks) {
+            proxyCallbacks[i].call();
+          }
+        }
+      });
+    }
   }
 };
