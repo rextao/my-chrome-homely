@@ -10,6 +10,16 @@ SettingHistory.prototype = {
   init(fixLinkHandling){
     this.enableHistory(fixLinkHandling);
   },
+  populate(){
+    $("#settings-history-enable").prop("checked", this.history["enable"]);
+
+    $("#settings-history-limit").val(this.history["limit"])
+      .prop("disabled", !this.history["enable"])
+      .parent().toggleClass("text-muted", !this.history["enable"]);
+    $("#settings-history-limit-value").text(this.history["limit"])
+      .parent().toggleClass("text-muted", !this.history["enable"]);
+  },
+  save(){},
   // 在启用并且非隐藏模式使用
   // 历史只有这一个函数，故直接传递参数
   enableHistory(fixLinkHandling){
@@ -70,7 +80,5 @@ SettingHistory.prototype = {
       });
     }
   },
-  populate(){},
-  save(){},
 };
 
