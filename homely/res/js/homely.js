@@ -301,9 +301,8 @@ $(document).ready(function () {
         $("#settings-style-background-image").prop("placeholder", "(默认图片)");
         break;
     }
-    $(".ext-name").text(manif.name);
-    $(".ext-ver").text(manif.version);
-    /*******************初始化设置面板默认信息**************************/
+    /*******************点击-设置-下拉框，个性化、关于等按钮事件*******************/
+    /*******************show.bs.modal打开模态框后，配置一些信息**************************/
     // 点击设置-个性化，进行填充设置
     $("#settings").on("show.bs.modal", function (e) {
       $("#settings-alerts").empty();
@@ -314,16 +313,20 @@ $(document).ready(function () {
       settingHistory.populate();
       settingGeneral.populate();
       settingStyle.populate();
-      $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
       // 默认显示在第一个（链接）
       $($("#settings-tabs a")[0]).click();
     });
-    /*******************初始化事件绑定**************************/
+    // 点击设置-关于
+    $('#about').on("show.bs.modal", function (e) {
+      $(".ext-name").text(manif.name);
+      $(".ext-ver").text(manif.version);
+    });
+    /*******************setting 里面checkbox事件绑定**************************/
     settingBookmarks.initEvent();
     settingGeneral.initEvent();
     settingHistory.initEvent();
     settingStyle.initEvent();
-    /*******************setting 点击保存按钮**************************/
+    /*******************setting 模态框点击-保存-按钮**************************/
     $("#settings-save").click(function (e) {
       // 标识是否删除权限失败
       let revokeError = false;
@@ -340,9 +343,6 @@ $(document).ready(function () {
       revokeError = settingGeneral.save(manif.name);
       // setting样式
       settingStyle.save();
-
-      settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
-
       $("#settings").on("hide.bs.modal", function (e) {
         e.preventDefault();
       });
@@ -416,7 +416,7 @@ $(document).ready(function () {
     var mousetrapStop = Mousetrap.stopCallback;
     // setup keyboard shortcuts on tab change
     var setupHotkeys = function setupHotkeys(e) {
-      // close any open dropdown menus
+      // 关闭任何一个下拉框
       var closeDropdowns = function closeDropdowns() {
         $(".btn-group.open, .dropdown.open").removeClass("open");
         $("#links .panel-heading .btn").hide();
@@ -456,67 +456,63 @@ $(document).ready(function () {
           blk: []
         };
       };
-      // clear current state
+      // 清空mousetrap的全部绑定，主要用于不想刷新页面，切换页面后为绑定不同快捷键使用
       Mousetrap.reset();
       linksClearSel();
-      // restore escape to close modal if open
+      // 如有打开的模态框，绑定一个esc，用于关闭模态框
       var modal = $(document.body).hasClass("modal-open");
       if (modal) {
         Mousetrap.bind("esc", function (e, key) {
           $(".modal.in").modal("hide");
         });
       }
-      // enable all keyboard shortcuts
+      //
       if (settings.general["keyboard"]) {
-        // global page switch keys
+        // 全局切换
         if (!modal) {
-          if (settings.bookmarks["enable"] && !settings.bookmarks["merge"]) {
-            Mousetrap.bind(["l", "q"], function (e, key) {
-              closeDropdowns();
-              $("#menu-links").click();
-            }).bind(["b", "w"], function (e, key) {
-              closeDropdowns();
-              $("#menu-bookmarks").click();
-            });
-          }
           if (settings.general["apps"]) {
-            Mousetrap.bind(["a", "e"], function (e, key) {
+            Mousetrap.bind("a", function (e, key) {
               if (!$("#apps-title").parent().hasClass("open")) closeDropdowns();
               $("#apps-title").click();
             }).bind("shift+a", function (e, key) {
-              chrome.tabs.update({url: "chrome://apps"});
-            }).bind("shift+alt+a", function (e, key) {
-              location.href = "https://chrome.google.com/webstore";
-            });
+              chrome.tabs.create({url: "chrome://extensions/"});
+            })
           }
           if (settings.history["enable"]) {
-            Mousetrap.bind(["h", "r"], function (e, key) {
+            Mousetrap.bind("h", function (e, key) {
               if (!$("#history-title").parent().hasClass("open")) closeDropdowns();
               $("#history-title").click();
             });
           }
-          Mousetrap.bind(["s", "u"], function (e, key) {
+          Mousetrap.bind("s", function (e, key) {
             if (!$("#settings-title").parent().hasClass("open")) closeDropdowns();
             $("#settings-title").click();
-          }).bind(["shift+s", "shift+y"], function (e, key) {
+          }).bind("s 1", function (e, key) {
             closeDropdowns();
             $("#settings-toggle").click();
+          }).bind("s 2", function (e, key) {
+            closeDropdowns();
+            $("#settings-import").click();
+          }).bind("s 3", function (e, key) {
+            closeDropdowns();
+            $("#settings-export").click();
+          }).bind("s 4", function (e, key) {
+            closeDropdowns();
+            $("#about-toggle").click();
           }).bind("?", function (e, key) {
             $("#shortcuts").modal();
           }).bind("esc", function (e, key) {
             closeDropdowns();
           });
         }
-        // if settings modal is open
+        // 设置-个性化模态框打开
         if ($(e.target).attr("id") === "settings" && e.type === "show") {
-          Mousetrap.bind(["tab", "shift+tab"], function (e, key) {
+          Mousetrap.bind("tab", function (e, key) {
             var sel = $("#settings-tabs li.active").index();
             sel = (sel + (key === "tab" ? 1 : -1)) % $("#settings-tabs li").length;
             if (sel < 0) sel += $("#settings-tabs li").length;
             $($("#settings-tabs a")[sel]).click();
             e.preventDefault();
-          }).bind("enter", function (e, key) {
-            $($("#settings .tab-pane.active input")[0]).focus();
           }).bind("ctrl+enter", function (e, key) {
             $("#settings-save").click();
           });
@@ -524,11 +520,12 @@ $(document).ready(function () {
           Mousetrap.stopCallback = function (e, element) {
             return element.tagName === "BUTTON" || mousetrapStop(e, element);
           }
-          // if shortcuts modal is open
+          // 快捷键模态框可以使用shift+/关闭
         } else if ($(e.target).attr("id") === "shortcuts" && e.type === "show") {
           Mousetrap.bind("?", function (e, key) {
             $("#shortcuts").modal("hide");
           });
+          // 其他，分别绑定链接、书签页面的快捷键
         } else {
           // restore stop callback
           Mousetrap.stopCallback = mousetrapStop;

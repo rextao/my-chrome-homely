@@ -43,7 +43,7 @@
                                 <li><a id="settings-import"><i class="fa fa-fw fa-arrow-left"></i> 导入</a></li>
                                 <li><a id="settings-export" download="homely.json"><i class="fa fa-fw fa-arrow-right"></i> 导出</a></li>
                                 <li class="divider"></li>
-                                <li><a id="about-toggle" data-toggle="modal" data-target="#about"><i class="fa fa-fw fa-home"></i> About <span class="ext-name"></span></a></li>
+                                <li><a id="about-toggle" data-toggle="modal" data-target="#about"><i class="fa fa-fw fa-home"></i> 关于 <span class="ext-name"></span></a></li>
                             </ul>
                             <input id="settings-import-file" type="file">
                         </li>
@@ -65,12 +65,12 @@
                     <div id="links-editor-body" class="modal-body"></div>
                     <div class="modal-footer">
                         <div class="btn-group pull-left">
-                            <button id="links-editor-add-link" class="btn btn-default"><i class="fa fa-globe"></i> Add link</button>
-                            <button id="links-editor-add-menu" class="btn btn-default"><i class="fa fa-list"></i> Add menu</button>
+                            <button id="links-editor-add-link" class="btn btn-default"><i class="fa fa-globe"></i> 添加链接</button>
+                            <button id="links-editor-add-menu" class="btn btn-default"><i class="fa fa-list"></i> 添加菜单</button>
                         </div>
-                        <button id="links-editor-save" class="btn btn-primary"><i class="fa fa-check"></i> Save</button>
-                        <button id="links-editor-delete" class="btn btn-danger"><i class="fa fa-trash-o"></i> Delete</button>
-                        <button class="btn btn-default" data-dismiss="modal"><i class="fa fa-undo"></i> Cancel</button>
+                        <button id="links-editor-save" class="btn btn-primary"><i class="fa fa-check"></i> 保存</button>
+                        <button id="links-editor-delete" class="btn btn-danger"><i class="fa fa-trash-o"></i> 删除</button>
+                        <button class="btn btn-default" data-dismiss="modal"><i class="fa fa-undo"></i> 取消</button>
                     </div>
                 </div>
             </div>
@@ -249,7 +249,7 @@
                                             <input id="settings-general-keyboard" type="checkbox">
                                             <span>启用高级快捷键导航功能</span>
                                         </label>
-                                        <p class="help-block">Press <code>?</code> or see the <a href="https://github.com/OllieTerrance/Homely#keyboard-shortcuts" class="link-external">readme</a> for controls.</p>
+                                        <p class="help-block">shift+/ 弹出快捷键的详细列表</p>
                                     </div>
                                 </div>
                                 <div class="form-group form-control-nomar-bottom form-control-pad-bottom">
@@ -454,31 +454,31 @@
                 </div>
             </div>
         </div>
+        <!--快捷键模态框-->
         <div id="shortcuts" class="modal fade">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
-                        <h4 class="modal-title"><i class="fa fa-keyboard-o"></i>&nbsp; Keyboard shortcuts</h4>
+                        <h4 class="modal-title"><i class="fa fa-keyboard-o"></i>&nbsp; 快捷键</h4>
                     </div>
                     <div class="modal-body">
-                        <div class="alert alert-info">Note: shortcuts are disabled whilst input fields (text boxes, selects, buttons) are currently focused.  In addition, focus on the new tab starts in the omnibox &ndash; you will need to <code>Tab</code> into the page before keyboard shortcuts become active.</div>
+                        <div class="alert alert-info">注意：当焦点在文本框、多选框、按钮上时，快捷键会失效；</div>
                         <div class="row">
                             <div class="col-sm-6">
-                                <h4>Global</h4>
+                                <h4>全局</h4>
                                 <ul>
-                                    <li><code>Q</code> <code>L</code> &ndash; switch to links</li>
-                                    <li><code>W</code> <code>B</code> &ndash; switch to bookmarks</li>
-                                    <li><code>E</code> <code>A</code> &ndash; open apps dropdown</li>
-                                    <li><code>R</code> <code>H</code> &ndash; open history dropdown</li>
-                                    <li><code>Y</code> <code>N</code> &ndash; open notifcations dropdown</li>
-                                    <li><code>U</code> <code>S</code> &ndash; open settings dropdown (<code>Shift</code> for modal)</li>
-                                    <li><code>Tab</code> <code>Shift+Tab</code> &ndash; scroll through dropdown options</li>
+                                    <li><code>H</code> &ndash; 打开“历史记录”下拉框</li>
+                                    <li><code>S</code> &ndash; 打开“设置”下拉框</li>
+                                    <li><code>S + 1</code> &ndash; 打开“设置-个性化”</li>
+                                    <li><code>S + 2</code> &ndash; 打开“设置-导入”</li>
+                                    <li><code>S + 3</code> &ndash; 打开“设置-导出”</li>
+                                    <li><code>S + 4</code> &ndash; 打开“设置-关于”</li>
                                 </ul>
-                                <h4>Apps</h4>
+                                <h4>扩展</h4>
                                 <ul>
-                                    <li><code>Shift+A</code> &ndash; open Chrome Apps page</li>
-                                    <li><code>Shift+Alt+A</code> &ndash; go to Chrome Web Store</li>
+                                    <li><code>A</code> &ndash; 打开“扩展”下拉框</li>
+                                    <li><code>shift+A</code> &ndash; 打开扩展详情页（chrome://extensions/）</li>
                                 </ul>
                                 <h4>Links</h4>
                                 <ul>
@@ -494,27 +494,14 @@
                                 <ul>
                                     <li><code>/</code> &ndash; focus search field</li>
                                 </ul>
-                                <h4>Baskets</h4>
+                                <h4>设置模态框</h4>
                                 <ul>
-                                    <li><code>Shift+K</code> &ndash; refresh baskets</li>
-                                    <li><code>Shift+Alt+K</code> &ndash; open all non-empty basket pages</li>
+                                    <li><code>Tab</code> &ndash; 切换</li>
+                                    <li><code>Ctrl+Enter</code> &ndash; 保存</li>
                                 </ul>
-                                <h4>Notifications</h4>
+                                <h4>快捷键模态框</h4>
                                 <ul>
-                                    <li><code>Shift+N</code> &ndash; refresh notifications</li>
-                                    <li><code>Shift+Alt+N</code> &ndash; open all unread notification pages</li>
-                                </ul>
-                                <h4>Settings</h4>
-                                <p>These are ignored if a form field is active.</p>
-                                <ul>
-                                    <li><code>Tab</code> <code>Shift+Tab</code> &ndash; cycle tabs</li>
-                                    <li><code>Enter</code> &ndash; switch to fields in tab</li>
-                                    <li><code>Ctrl+Enter</code> &ndash; save and reload</li>
-                                    <li><code>Esc</code> &ndash; cancel</li>
-                                </ul>
-                                <h4>Misc</h4>
-                                <ul>
-                                    <li><code>?</code> &ndash; show keyboard shortcuts modal (this page)</li>
+                                    <li><code>shift+/</code> &ndash; 打开或关闭此页面</li>
                                 </ul>
                             </div>
                         </div>
@@ -522,24 +509,25 @@
                 </div>
             </div>
         </div>
+        <!--关于的模态框-->
         <div id="about" class="modal fade">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
-                        <h4 class="modal-title"><i class="fa fa-home"></i>&nbsp; About</h4>
+                        <h4 class="modal-title"><i class="fa fa-home"></i>&nbsp;关于</h4>
                     </div>
                     <div class="modal-body text-center">
                         <img src="../img/logo-128.png"/>
                         <h2><span class="ext-name"></span> <small class="ext-ver"></small></h2>
-                        <p>Written by <a class="link-external" href="http://terrance.allofti.me">Ollie Terrance</a></p>
+                        <p>作者：RexTao</p>
+                        <p>参考：
+                            <a class="link-external" href="http://terrance.allofti.me">Ollie Terrance</a>
+                            <a class="link-external" href=https://github.com/OllieTerrance/Homely"">github地址</a>
+                        </p>
                         <div class="btn-group">
-                            <a class="btn btn-sm btn-default link-external" href="https://github.com/OllieTerrance/Homely"><i class="fa fa-github-alt"></i>&nbsp; GitHub project</a>
-                            <a class="btn btn-sm btn-default link-external" href="https://github.com/OllieTerrance/Homely/releases"><i class="fa fa-download"></i>&nbsp; Changelog</a>
-                            <a class="btn btn-sm btn-default link-external" href="https://chrome.google.com/webstore/detail/homely/fplghnonomhbnlhdnmjpipoomkjdpeim"><i class="fa fa-chrome"></i>&nbsp; Web Store page</a>
+                            <a class="btn btn-sm btn-default link-external" href="https://github.com/rextao/my-chrome-homely"><i class="fa fa-github-alt"></i>&nbsp; 本项目地址</a>
                         </div>
-                        <p>Feedback is welcome &ndash; see the <a class="link-external" href="https://chrome.google.com/webstore/detail/homely/fplghnonomhbnlhdnmjpipoomkjdpeim/reviews">Reviews</a> section on the Chrome Web Store page.</p>
-                        <p>For bug reports and feature requests (including new inclusions for notifications and baskets), please add to the <a class="link-external" href="https://github.com/OllieTerrance/Homely/issues">issue tracker</a> on GitHub.</p>
                     </div>
                 </div>
             </div>
@@ -550,6 +538,8 @@
         <script src="../../lib/js/mousetrap.min.js"></script>
         <script src="../js/tools.js"></script>
         <script src="../js/bookmarks.js"></script>
+        <script src="../js/links.js"></script>
+        <script src="../js/about.js"></script>
         <script src="../js/settingLinks.js"></script>
         <script src="../js/settingBookmarks.js"></script>
         <script src="../js/settingHistory.js"></script>
