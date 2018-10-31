@@ -466,7 +466,7 @@ $(document).ready(function () {
           $(".modal.in").modal("hide");
         });
       }
-      //
+      // 快捷键
       if (settings.general["keyboard"]) {
         // 全局切换
         if (!modal) {
