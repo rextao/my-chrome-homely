@@ -21,7 +21,8 @@
     - chrome.runtime.getManifest()：返回文件manifest详细信息
     - 根据官网api控制扩展
     - 提供一个外网api，可以获取天气与ip，利用ajax请求数据
-    -#settings-general-weather-celsius，切换符号，利用的三元表达式，实现一行代码切换文字
+    - #settings-general-weather-celsius，切换符号，利用的三元表达式，实现一行代码切换文字
+    - 快捷键插件mousetrap，6年不更新了。
 1. 历史：
     - 直接使用input,type=range实现简单的控制条
 1. 书签：

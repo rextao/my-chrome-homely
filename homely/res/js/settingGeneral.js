@@ -26,6 +26,8 @@ SettingGeneral.prototype = {
   populate(){
     const that = this;
     $("#settings-general-title").val(this.general["title"]);
+    // 快捷键
+    $("#settings-general-keyboard").prop("checked", this.general["keyboard"]);
     // 小部件
     // --------时钟
     $("#settings-general-clock-show").prop("checked", this.general["clock"].show);
@@ -88,6 +90,8 @@ SettingGeneral.prototype = {
     // 标识是否删除权限失败
     let revokeError = false;
     this.setTitleName(manifname);
+    // 快捷键
+    this.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
     // 小部件
     // ----时钟
     this.general["clock"] = {
@@ -196,6 +200,10 @@ SettingGeneral.prototype = {
     this.general["title"] = $("#settings-general-title").val();
   },
 
+  // 快捷键
+  initHotKeys(){
+
+  },
   // 时钟，用定时器，时间不太准
   initClock(){
     // 显示时钟
