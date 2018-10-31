@@ -248,16 +248,20 @@ $(document).ready(function () {
       });
     };
     /***********************setting 初始化*********************************/
-    /******************* 运行init函数，初始化页面开始需要的内容****************************/
+    /******************* 运行init函数，初始化页面开始需要的内容**************/
+    /******************有些功能需要根据setting里配置的值来确定如何初始化******/
     let bookmarksCallbacks = [];
     let weatherCallbacks = [];
     let proxyCallbacks = [];
     // 链接
     const settingLinks = new SettingLinks(settings.links, settings, fixLinkHandling);
     settingLinks.init();
+    // links中编辑完模块，需要重新渲染页面即需要调用settingLinks.initLink
+    const links = new Links(settings.links, settings, settingLinks);
+    links.init();
     // 设置（书签）
     const settingBookmarks = new SettingBookmarks(settings, bookmarksCallbacks);
-    settingBookmarks.init();
+    settingBookmarks.init(settings.links);
     // 设置（历史）
     const settingHistory = new SettingHistory(settings.history);
     settingHistory.init(fixLinkHandling);
@@ -272,312 +276,14 @@ $(document).ready(function () {
     settingStyle.init();
 
 
-    // generate editor modal
-    $("#links-editor").on("show.bs.modal", function (e) {
-      var i = $(this).data("block");
-      // working copy
-      var linkBlk = $.extend(true, {}, settings.links["content"][i]);
-      $("#links-editor-title").val(linkBlk.title);
-      var populateLinkEditor = function populateLinkEditor(noscroll) {
-        // remember scroll position
-        var scroll = noscroll ? 0 : document.body.scrollTop;
-        $("#links-editor-body").empty();
-        if (!linkBlk.buttons.length) {
-          $("#links-editor-body").append($("<div/>").addClass("alert alert-info").text("No buttons added yet."));
-        }
-        // loop through buttons in block
-        $(linkBlk.buttons).each(function (j, linkBtn) {
-          var blk = $("<div/>").addClass("well well-sm");
-          var group = $("<div/>").addClass("input-group form-control-pad-bottom");
-          // left menu
-          var btnRootLeft = $("<span/>").addClass("input-group-btn");
-          var optsBtn = $("<button/>").addClass("btn btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<b/>").addClass("caret"));
-          btnRootLeft.append(optsBtn);
-          var optsMenu = $("<ul/>").addClass("dropdown-menu");
-          if (j > 0) {
-            optsMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-up")).append(" Move to top").click(function (e) {
-              for (var x = j; x > 0; x--) {
-                linkBlk.buttons[x] = linkBlk.buttons[x - 1];
-              }
-              linkBlk.buttons[0] = linkBtn;
-              populateLinkEditor();
-            })));
-            optsMenu.append($("<li/>").append($("<a/>").append(fa("angle-up")).append(" Move up").click(function (e) {
-              linkBlk.buttons[j] = linkBlk.buttons[j - 1];
-              linkBlk.buttons[j - 1] = linkBtn;
-              populateLinkEditor();
-            })));
-          }
-          var max = linkBlk.buttons.length - 1;
-          if (j < max) {
-            optsMenu.append($("<li/>").append($("<a/>").append(fa("angle-down")).append(" Move down").click(function (e) {
-              linkBlk.buttons[j] = linkBlk.buttons[j + 1];
-              linkBlk.buttons[j + 1] = linkBtn;
-              populateLinkEditor();
-            })));
-            optsMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-down")).append(" Move to bottom").click(function (e) {
-              for (var x = j; x < max; x++) {
-                linkBlk.buttons[x] = linkBlk.buttons[x + 1];
-              }
-              linkBlk.buttons[max] = linkBtn;
-              populateLinkEditor();
-            })));
-          }
-          if (j > 0 || j < max) {
-            optsMenu.append($("<li/>").addClass("divider"));
-          }
-          if (linkBtn.menu && linkBtn.menu.length === 1) {
-            optsMenu.append($("<li/>").append($("<a/>").append(fa("level-up")).append(" Convert to link").click(function (e) {
-              linkBtn.title = linkBtn.menu[0].title;
-              linkBtn.url = linkBtn.menu[0].url;
-              delete linkBtn.menu;
-              populateLinkEditor();
-            })));
-            optsMenu.append($("<li/>").addClass("divider"));
-          } else if (!linkBtn.menu) {
-            optsMenu.append($("<li/>").append($("<a/>").append(fa("level-down")).append(" Convert to menu").click(function (e) {
-              linkBtn.menu = [
-                {
-                  title: linkBtn.title,
-                  url: linkBtn.url
-                }
-              ];
-              linkBtn.title = "";
-              delete linkBtn.url;
-              populateLinkEditor();
-            })));
-            optsMenu.append($("<li/>").addClass("divider"));
-          }
-          optsMenu.append($("<li/>").append($("<a/>").append(fa("trash-o")).append(" Delete button").click(function (e) {
-            if (confirm("Are you sure you want to delete " + (linkBtn.title ? linkBtn.title : "this button") + "?")) {
-              linkBlk.buttons.splice(j, 1);
-              populateLinkEditor();
-            }
-          })));
-          btnRootLeft.append(optsMenu);
-          group.append(btnRootLeft);
-          group.append($("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Button label").val(linkBtn.title).change(function (e) {
-            linkBtn.title = $(this).val();
-          }));
-          // right menus
-          var btnRootRight = $("<span/>").addClass("input-group-btn");
-          if (!linkBtn.style) {
-            linkBtn.style = "default";
-          }
-          var styles = ["default", "light", "dark", "primary", "info", "success", "warning", "danger"];
-          var stylePreview = $("<button/>").addClass("btn btn-" + linkBtn.style).html("&nbsp");
-          var styleOpts = [];
-          stylePreview.click(function (e) {
-            stylePreview.detach();
-            btnRootRight.append(styleOpts);
-          });
-          $(styles).each(function (k, style) {
-            styleOpts.push($("<button/>").addClass("btn btn-" + style).html("&nbsp;").click(function (e) {
-              linkBtn.style = style;
-              $(styleOpts).each(function (l, opt) {
-                $(opt).detach();
-              });
-              // remove all button style classes
-              stylePreview.removeClass(function (l, css) {
-                return (css.match(/\bbtn-\S+/g) || []).join(" ");
-              }).addClass("btn-" + styles[k]);
-              btnRootRight.append(stylePreview);
-            }));
-          });
-          styleOpts.push($("<button/>").addClass("btn btn-default").append($("<i/>").addClass("fa fa-magic")).click(function (e) {
-            var cls = prompt("Enter a class name to apply to the button.\n\nUse the custom CSS box in Settings to add a button style for this name.", "");
-            if (!cls) return;
-            linkBtn.style = cls;
-            if (styles.indexOf(cls) > -1) cls = "btn-" + cls;
-            $(styleOpts).each(function (l, opt) {
-              $(opt).detach();
-            });
-            // remove all button style classes
-            stylePreview.removeClass(function (l, css) {
-              return (css.match(/\bbtn-\S+/g) || []).join(" ");
-            }).addClass(cls);
-            btnRootRight.append(stylePreview);
-          }));
-          btnRootRight.append(stylePreview);
-          group.append(btnRootRight);
-          blk.append(group);
-          // link/menu options
-          if (linkBtn.menu) {
-            var tbody = $("<tbody/>");
-            $(linkBtn.menu).each(function (k, linkItem) {
-              var tr = $("<tr/>");
-              var menuOptsRoot = $("<div/>").addClass("btn-group btn-block");
-              menuOptsRoot.append($("<button/>").addClass("btn btn-block btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<b/>").addClass("caret")));
-              var menuOptsMenu = $("<ul/>").addClass("dropdown-menu");
-              if (k > 0) {
-                menuOptsMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-up")).append(" Move to top").click(function (e) {
-                  for (var x = k; x > 0; x--) {
-                    linkBtn.menu[x] = linkBtn.menu[x - 1];
-                  }
-                  linkBtn.menu[0] = linkItem;
-                  populateLinkEditor();
-                })));
-                menuOptsMenu.append($("<li/>").append($("<a/>").append(fa("angle-up")).append(" Move up").click(function (e) {
-                  linkBtn.menu[k] = linkBtn.menu[k - 1];
-                  linkBtn.menu[k - 1] = linkItem;
-                  populateLinkEditor();
-                })));
-              }
-              var max = linkBtn.menu.length - 1;
-              if (k < max) {
-                menuOptsMenu.append($("<li/>").append($("<a/>").append(fa("angle-down")).append(" Move down").click(function (e) {
-                  linkBtn.menu[k] = linkBtn.menu[k + 1];
-                  linkBtn.menu[k + 1] = linkItem;
-                  populateLinkEditor();
-                })));
-                menuOptsMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-down")).append(" Move to bottom").click(function (e) {
-                  for (var x = k; x < max; x++) {
-                    linkBtn.menu[x] = linkBtn.menu[x + 1];
-                  }
-                  linkBtn.menu[max] = linkItem;
-                  populateLinkEditor();
-                })));
-              }
-              if (k > 0 || k < max) {
-                menuOptsMenu.append($("<li/>").addClass("divider"));
-              }
-              menuOptsMenu.append($("<li/>").append($("<a/>").append(fa("trash-o")).append(" Delete item").click(function (e) {
-                linkBtn.menu.splice(k, 1);
-                populateLinkEditor();
-              })));
-              menuOptsRoot.append(menuOptsMenu);
-              tr.append($("<td/>").append(menuOptsRoot));
-              if (typeof(linkItem) === "string") {
-                var title = $("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Section header (leave blank for none)").val(linkItem).change(function (e) {
-                  linkBtn.menu[k] = $(this).val();
-                });
-                tr.append($("<td/>").attr("colspan", 3).append(title));
-              } else {
-                var title = $("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Label").val(linkItem.title).change(function (e) {
-                  linkItem.title = $(this).val();
-                });
-                tr.append($("<td/>").append(title));
-                var linkGroup = $("<div/>").addClass("input-group");
-                var url = $("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Link URL").val(linkItem.url).change(function (e) {
-                  linkItem.url = $(this).val();
-                })
-                linkGroup.append(url);
-                var linkItemRootRight = $("<span/>").addClass("input-group-btn");
-                var check = $("<button/>").addClass("btn btn-default dropdown-toggle").attr("data-toggle", "dropdown");
-                if (linkItem.external) {
-                  check.append(fa("external-link")).append(" New tab");
-                } else {
-                  check.append(fa("sign-in")).append(" Same tab");
-                }
-                check.click(function (e) {
-                  linkItem.external = !linkItem.external;
-                  check.empty();
-                  if (linkItem.external) {
-                    check.append(fa("external-link")).append(" New tab");
-                  } else {
-                    check.append(fa("sign-in")).append(" Same tab");
-                  }
-                });
-                linkItemRootRight.append(check);
-                linkGroup.append(linkItemRootRight);
-                tr.append($("<td/>").append(linkGroup));
-              }
-              tbody.append(tr);
-            });
-            blk.append($("<table/>").addClass("table table-bordered table-condensed").append(tbody));
-            var menuBtnsRoot = $("<div/>").addClass("btn-group");
-            menuBtnsRoot.append($("<button/>").addClass("btn btn-default").append(fa("globe")).append(" Add link").click(function (e) {
-              linkBtn.menu.push({
-                title: "",
-                url: ""
-              });
-              populateLinkEditor();
-            }));
-            menuBtnsRoot.append($("<button/>").addClass("btn btn-default").append(fa("indent")).append(" Add section").click(function (e) {
-              linkBtn.menu.push("");
-              populateLinkEditor();
-            }));
-            blk.append(menuBtnsRoot);
-          } else {
-            var linkGroup = $("<div/>").addClass("input-group");
-            var url = $("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Link URL").val(linkBtn.url).change(function (e) {
-              linkBtn.url = $(this).val();
-            })
-            linkGroup.append(url);
-            var linkBtnRootRight = $("<span/>").addClass("input-group-btn");
-            var check = $("<button/>").addClass("btn btn-default dropdown-toggle").attr("data-toggle", "dropdown");
-            if (linkBtn.external) {
-              check.append(fa("external-link")).append(" New tab");
-            } else {
-              check.append(fa("sign-in")).append(" Same tab");
-            }
-            check.click(function (e) {
-              linkBtn.external = !linkBtn.external;
-              check.empty();
-              if (linkBtn.external) {
-                check.append(fa("external-link")).append(" New tab");
-              } else {
-                check.append(fa("sign-in")).append(" Same tab");
-              }
-            });
-            linkBtnRootRight.append(check);
-            linkGroup.append(linkBtnRootRight);
-            blk.append(linkGroup);
-          }
-          $("#links-editor-body").append(blk);
-        });
-        // reset scroll position
-        window.scrollTo(0, scroll);
-      };
-      // add buttons to block
-      $("#links-editor-add-link").click(function (e) {
-        linkBlk.buttons.push({
-          title: "",
-          url: "",
-          style: "default"
-        });
-        populateLinkEditor();
-      })
-      $("#links-editor-add-menu").click(function (e) {
-        linkBlk.buttons.push({
-          title: "",
-          menu: [],
-          style: "default"
-        });
-        populateLinkEditor();
-      })
-      // save block
-      $("#links-editor-save").click(function (e) {
-        linkBlk.title = $("#links-editor-title").val();
-        settings.links["content"][i] = linkBlk;
-        $("#links-editor").modal("hide");
-        populateLinks();
-        chrome.storage.local.set({"links": settings.links});
-      })
-      // delete block
-      $("#links-editor-delete").click(function (e) {
-        if (confirm("Are you sure you want to delete " + (linkBlk.title ? linkBlk.title : "this block") + "?")) {
-          settings.links["content"].splice(i, 1);
-          $("#links-editor").modal("hide");
-          populateLinks();
-          chrome.storage.local.set({"links": settings.links});
-        }
-      })
-      populateLinkEditor(true);
-    }).on("hide.bs.modal", function (e) {
-      $("#links-editor-add-link, #links-editor-add-menu, #links-editor-save, #links-editor-delete").off("click");
-    });
     if (firstRun) {
       var alert = $("<div/>").addClass("alert alert-success alert-dismissable");
       alert.append($("<button/>").addClass("close").attr("data-dismiss", "alert").html("&times;").click(function (e) {
         chrome.storage.local.set(settings);
       }));
-      alert.append("<span><strong>Welcome to " + manif.name + "!</strong>  To get you started, here are a few sample blocks for your new New Tab page.  "
-        + "Feel free to change or add to them by hovering over the block headings for controls.  "
-        + "Head into Settings for more advanced options, where you can add bookmarks, history, apps, widgets, keyboard shortcuts and more.</span>");
+      alert.append("<span><strong>欢迎来到" + manif.name + "!</strong>");
       $("#alerts").append(alert);
     }
-
     // switch to links page
     $("#menu-links").click(function (e) {
       $(".navbar-right li").removeClass("active");
@@ -609,6 +315,7 @@ $(document).ready(function () {
       settingGeneral.populate();
       settingStyle.populate();
       $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
+      // 默认显示在第一个（链接）
       $($("#settings-tabs a")[0]).click();
     });
     /*******************初始化事件绑定**************************/
