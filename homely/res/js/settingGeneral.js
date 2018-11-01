@@ -200,9 +200,161 @@ SettingGeneral.prototype = {
     this.general["title"] = $("#settings-general-title").val();
   },
 
-  // 快捷键
-  initHotKeys(){
+  // 初始化快捷键
+  initHotKeys(e){
+    const that = this;
+    var mousetrapStop = Mousetrap.stopCallback;
+    // links selection state
+    var linksHotkeys = {
+      curBlk: -1,
+      curBtn: -1,
+      blk: []
+    };
+    // 关闭任何一个下拉框
+    var closeDropdowns = function closeDropdowns() {
+      $(".btn-group.open, .dropdown.open").removeClass("open");
+      $("#links .panel-heading .btn").hide();
+    };
+    // number/cycle navigation for links
+    var nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+    var off = "panel-" + that.settings.style["panel"];
+    var on = "panel-" + (off === "panel-primary" ? "default" : "primary");
+    // 选中某个模块
+    var selectBlk = function selectBlk(i, id) {
+      // 先为panel增加一个选中样式
+      $(`#${id} .${on}`).removeClass(on).addClass(off);
+      linksHotkeys.curBlk = i;
+      $(`#${id} .panel`).eq(i).removeClass(off).addClass(on);
+      if (linksHotkeys.curBtn > -1) {
+        $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
+        $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
+      }
+      linksHotkeys.blk = $(`#${id} .panel`).eq(i).find(' .panel-body .btn');
+      selectBtn(0);
+    };
+    var selectBtn = function selectBtn(i) {
+      if (linksHotkeys.curBtn > -1) {
+        $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
+        $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
+      }
+      linksHotkeys.curBtn = i;
+      $(linksHotkeys.blk[linksHotkeys.curBtn]).prepend(" ").prepend($("<i/>").addClass("fa fa-hand-o-right")).focus().blur(function (e) {
+        $(this).off("blur");
+        clearSel();
+      });
+    };
+    // 清楚选择
+    var clearSel = function clearSel() {
+      $("#links ." + on).removeClass(on).addClass(off);
+      if (linksHotkeys.curBtn > -1) $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
+      linksHotkeys = {
+        curBlk: -1,
+        curBtn: -1,
+        blk: []
+      };
+    };
+    // 清空mousetrap的全部绑定，主要用于不想刷新页面，切换页面后为绑定不同快捷键使用
+    Mousetrap.reset();
+    clearSel();
+    // 如有打开的模态框，绑定一个esc，用于关闭模态框
+    var modal = $(document.body).hasClass("modal-open");
+    if (modal) {
+      Mousetrap.bind("esc", function (e, key) {
+        $(".modal.in").modal("hide");
+      });
+    }
+    // 快捷键
+    if (that.settings.general["keyboard"]) {
+      // 全局快捷键
+      if (!modal) {
+        if (that.settings.general["apps"]) {
+          Mousetrap.bind("a", function (e, key) {
+            if (!$("#apps-title").parent().hasClass("open")) closeDropdowns();
+            $("#apps-title").click();
+          }).bind("shift+a", function (e, key) {
+            chrome.tabs.create({url: "chrome://extensions/"});
+          })
+        }
+        if (that.settings.history["enable"]) {
+          Mousetrap.bind("h", function (e, key) {
+            if (!$("#history-title").parent().hasClass("open")) closeDropdowns();
+            $("#history-title").click();
+          });
+        }
+        Mousetrap.bind("s", function (e, key) {
+          if (!$("#settings-title").parent().hasClass("open")) closeDropdowns();
+          $("#settings-title").click();
+        }).bind("s 1", function (e, key) {
+          closeDropdowns();
+          $("#settings-toggle").click();
+        }).bind("s 2", function (e, key) {
+          closeDropdowns();
+          $("#settings-import").click();
+        }).bind("s 3", function (e, key) {
+          closeDropdowns();
+          $("#settings-export").click();
+        }).bind("s 4", function (e, key) {
+          closeDropdowns();
+          $("#about-toggle").click();
+        }).bind("?", function (e, key) {
+          $("#shortcuts").modal();
+        }).bind("esc", function (e, key) {
+          closeDropdowns();
+        });
+      }
+      // 设置-个性化模态框打开
+      if ($(e.target).attr("id") === "settings" && e.type === "show") {
+        Mousetrap.bind("tab", function (e, key) {
+          var sel = $("#settings-tabs li.active").index();
+          sel = (sel + (key === "tab" ? 1 : -1)) % $("#settings-tabs li").length;
+          if (sel < 0) sel += $("#settings-tabs li").length;
+          $($("#settings-tabs a")[sel]).click();
+          e.preventDefault();
+        }).bind("ctrl+enter", function (e, key) {
+          $("#settings-save").click();
+        });
+        // override stop callback to pause on button focus
+        Mousetrap.stopCallback = function (e, element) {
+          return element.tagName === "BUTTON" || mousetrapStop(e, element);
+        }
+        // 快捷键模态框可以使用shift+/关闭
+      } else if ($(e.target).attr("id") === "shortcuts" && e.type === "show") {
+        Mousetrap.bind("?", function (e, key) {
+          $("#shortcuts").modal("hide");
+        });
+        // 其他，分别绑定链接、书签页面的快捷键
+      } else {
+        // restore stop callback
+        Mousetrap.stopCallback = mousetrapStop;
+        // 链接与书签页面样式一致，使用相同快捷键
+        const menuId = $("nav li.active").attr("id");
+        // 链接与书签（扁平化布局）的快捷键
+        if (menuId === "menu-links" || menuId === "menu-bookmarks" || that.settings.bookmarks["merge"]) {
+          const panelId = menuId.split('-')[1];
+          Mousetrap.bind(nums, function (e, key) {
+            closeDropdowns();
+            // select block by number
+            selectBlk(nums.indexOf(key), panelId);
+        }).bind('`', function (e, key) {
+            closeDropdowns();
+            if (linksHotkeys.curBlk === -1) selectBlk(0, panelId);
+            var i = (linksHotkeys.curBtn === -1 ? 0 : (linksHotkeys.curBtn + (key === "[" ? -1 : 1)) % linksHotkeys.blk.length);
+            if (i < 0) i += linksHotkeys.blk.length;
+            selectBtn(i);
+          }).bind("enter", function (e, key) {
+            // clear selection
+            setTimeout(clearSel, 50);
+          }).bind("backspace", function (e, key) {
+            // clear selection and lose focus
+            if (linksHotkeys.curBtn > -1) $(linksHotkeys.blk[linksHotkeys.curBtn]).blur();
+          });
+        }
+        // 如果是拨号布局
+        if(menuId === "menu-bookmarks" && $('#bookmarks .dial')) {
 
+        }
+      }
+    }
   },
   // 时钟，用定时器，时间不太准
   initClock(){

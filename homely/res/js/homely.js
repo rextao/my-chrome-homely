@@ -407,176 +407,17 @@ $(document).ready(function () {
       $(this).attr("href", "data:application/json;charset=UTF-8," + encodeURIComponent(JSON.stringify(toExport)))
         .click().attr("href", "");
     });
-    // links selection state
-    var linksHotkeys = {
-      curBlk: -1,
-      curBtn: -1,
-      blk: []
-    };
-    var mousetrapStop = Mousetrap.stopCallback;
-    // setup keyboard shortcuts on tab change
-    var setupHotkeys = function setupHotkeys(e) {
-      // 关闭任何一个下拉框
-      var closeDropdowns = function closeDropdowns() {
-        $(".btn-group.open, .dropdown.open").removeClass("open");
-        $("#links .panel-heading .btn").hide();
-      };
-      // number/cycle navigation for links
-      var nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
-      var off = "panel-" + settings.style["panel"];
-      var on = "panel-" + (off === "panel-primary" ? "default" : "primary");
-      var linksSelectBlk = function linksSelectBlk(i) {
-        $("#links ." + on).removeClass(on).addClass(off);
-        linksHotkeys.curBlk = i;
-        $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel").removeClass(off).addClass(on);
-        if (linksHotkeys.curBtn > -1) {
-          $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
-          $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
-        }
-        linksHotkeys.blk = $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel .panel-body .btn");
-        linksSelectBtn(0);
-      };
-      var linksSelectBtn = function linksSelectBtn(i) {
-        if (linksHotkeys.curBtn > -1) {
-          $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
-          $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
-        }
-        linksHotkeys.curBtn = i;
-        $(linksHotkeys.blk[linksHotkeys.curBtn]).prepend(" ").prepend($("<i/>").addClass("fa fa-hand-o-right")).focus().blur(function (e) {
-          $(this).off("blur");
-          linksClearSel();
-        });
-      }
-      var linksClearSel = function linksClearSel() {
-        $("#links ." + on).removeClass(on).addClass(off);
-        if (linksHotkeys.curBtn > -1) $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
-        linksHotkeys = {
-          curBlk: -1,
-          curBtn: -1,
-          blk: []
-        };
-      };
-      // 清空mousetrap的全部绑定，主要用于不想刷新页面，切换页面后为绑定不同快捷键使用
-      Mousetrap.reset();
-      linksClearSel();
-      // 如有打开的模态框，绑定一个esc，用于关闭模态框
-      var modal = $(document.body).hasClass("modal-open");
-      if (modal) {
-        Mousetrap.bind("esc", function (e, key) {
-          $(".modal.in").modal("hide");
-        });
-      }
-      // 快捷键
-      if (settings.general["keyboard"]) {
-        // 全局切换
-        if (!modal) {
-          if (settings.general["apps"]) {
-            Mousetrap.bind("a", function (e, key) {
-              if (!$("#apps-title").parent().hasClass("open")) closeDropdowns();
-              $("#apps-title").click();
-            }).bind("shift+a", function (e, key) {
-              chrome.tabs.create({url: "chrome://extensions/"});
-            })
-          }
-          if (settings.history["enable"]) {
-            Mousetrap.bind("h", function (e, key) {
-              if (!$("#history-title").parent().hasClass("open")) closeDropdowns();
-              $("#history-title").click();
-            });
-          }
-          Mousetrap.bind("s", function (e, key) {
-            if (!$("#settings-title").parent().hasClass("open")) closeDropdowns();
-            $("#settings-title").click();
-          }).bind("s 1", function (e, key) {
-            closeDropdowns();
-            $("#settings-toggle").click();
-          }).bind("s 2", function (e, key) {
-            closeDropdowns();
-            $("#settings-import").click();
-          }).bind("s 3", function (e, key) {
-            closeDropdowns();
-            $("#settings-export").click();
-          }).bind("s 4", function (e, key) {
-            closeDropdowns();
-            $("#about-toggle").click();
-          }).bind("?", function (e, key) {
-            $("#shortcuts").modal();
-          }).bind("esc", function (e, key) {
-            closeDropdowns();
-          });
-        }
-        // 设置-个性化模态框打开
-        if ($(e.target).attr("id") === "settings" && e.type === "show") {
-          Mousetrap.bind("tab", function (e, key) {
-            var sel = $("#settings-tabs li.active").index();
-            sel = (sel + (key === "tab" ? 1 : -1)) % $("#settings-tabs li").length;
-            if (sel < 0) sel += $("#settings-tabs li").length;
-            $($("#settings-tabs a")[sel]).click();
-            e.preventDefault();
-          }).bind("ctrl+enter", function (e, key) {
-            $("#settings-save").click();
-          });
-          // override stop callback to pause on button focus
-          Mousetrap.stopCallback = function (e, element) {
-            return element.tagName === "BUTTON" || mousetrapStop(e, element);
-          }
-          // 快捷键模态框可以使用shift+/关闭
-        } else if ($(e.target).attr("id") === "shortcuts" && e.type === "show") {
-          Mousetrap.bind("?", function (e, key) {
-            $("#shortcuts").modal("hide");
-          });
-          // 其他，分别绑定链接、书签页面的快捷键
-        } else {
-          // restore stop callback
-          Mousetrap.stopCallback = mousetrapStop;
-          // if links page is active
-          if ($("nav li.active").attr("id") === "menu-links" || settings.bookmarks["merge"]) {
-            Mousetrap.bind(nums, function (e, key) {
-              closeDropdowns();
-              // select block by number
-              linksSelectBlk(nums.indexOf(key));
-            }).bind(["-", "="], function (e, key) {
-              closeDropdowns();
-              // previous/next block
-              var i = (linksHotkeys.curBlk === -1 ? 0 : (linksHotkeys.curBlk + (key === "-" ? -1 : 1)) % $("#links .panel").length);
-              if (i < 0) i += $("#links .panel").length;
-              linksSelectBlk(i);
-            }).bind(["[", "]"], function (e, key) {
-              closeDropdowns();
-              // previous/next button
-              if (linksHotkeys.curBlk === -1) linksSelectBlk(0);
-              var i = (linksHotkeys.curBtn === -1 ? 0 : (linksHotkeys.curBtn + (key === "[" ? -1 : 1)) % linksHotkeys.blk.length);
-              if (i < 0) i += linksHotkeys.blk.length;
-              linksSelectBtn(i);
-            }).bind("enter", function (e, key) {
-              // clear selection
-              setTimeout(linksClearSel, 50);
-            }).bind("backspace", function (e, key) {
-              // clear selection and lose focus
-              if (linksHotkeys.curBtn > -1) $(linksHotkeys.blk[linksHotkeys.curBtn]).blur();
-            });
-          }
-          // if bookmarks page is active
-          if ($("nav li.active").attr("id") === "menu-bookmarks" || settings.bookmarks["merge"]) {
-            Mousetrap.bind("/", function (e, key) {
-              $("#bookmarks-search").focus();
-              e.preventDefault();
-            });
-          }
-        }
-      }
-    };
-    $("#menu-links").click(setupHotkeys);
-    if (settings.style["topbar"].labels) {
-      $(".menu-label").show();
-    } else {
-      $(".menu-label").each(function (i) {
-        $(this).parent().attr("title", $(this).text());
-      });
-    }
-    ;
+
+
+
+    // initHotKeys通过点击标题，来运行，因为可能有些快捷键需要进入某个内容页才起作用
+    $("#menu-links").click(function(e){
+      settingGeneral.initHotKeys(e);
+    });
     bookmarksCallbacks.push(function () {
-      $("#menu-bookmarks").click(setupHotkeys);
+      $("#menu-bookmarks").click(function (e) {
+        settingGeneral.initHotKeys(e);
+      });
       var label = $("#menu-bookmarks .menu-label");
       if (settings.style["topbar"].labels) {
         label.show();
@@ -595,16 +436,17 @@ $(document).ready(function () {
         label.parent().attr("title", label.text());
       }
     });
+
     // manually adjust modal-open class as not available at event trigger
     $(".modal").on("show.bs.modal", function (e) {
       $(document.body).addClass("modal-open");
-      setupHotkeys(e);
+      settingGeneral.initHotKeys(e);
     }).on("hidden.bs.modal", function (e) {
       $(document.body).removeClass("modal-open");
-      setupHotkeys(e);
+      settingGeneral.initHotKeys(e);
     });
     if (settings.bookmarks["merge"]) {
-      setupHotkeys({});
+      settingGeneral.initHotKeys({});
       // show both links and bookmarks, hide switch links
       $("#menu-links, #menu-bookmarks").hide();
       $(document.body).addClass("merge");

@@ -33,6 +33,14 @@ SettingStyle.prototype = {
     }
     // 为页面添加样式，在head中添加style样式
     this.appendStyleToHead();
+    // 是否显示topbar右边的文字
+    if (this.style["topbar"].labels) {
+      $(".menu-label").show();
+    } else {
+      $(".menu-label").each(function (i) {
+        $(this).parent().attr("title", $(this).text());
+      });
+    }
 
   },
   // 打开设置面板时，初始化设置面板的一些值
