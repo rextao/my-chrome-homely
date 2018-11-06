@@ -120,11 +120,6 @@ SettingBookmarks.prototype = {
           root.title = "Bookmarks";
           const bookmarks = new Bookmarks(that.settings.bookmarks, that.settings.style, root);
           const layout = that.settings.bookmarks['layout'];
-          // 增加一个双书签模式，即根据选项覆盖links内容（效率低下）
-          if(that.settings.bookmarks["double"]){
-            bookmarks.layoutDial(6,'links');
-            $('#menu-links span').text('快捷书签');
-          }
           switch (layout) {
             case 'folder':
               bookmarks.layoutFolder();
@@ -143,11 +138,11 @@ SettingBookmarks.prototype = {
           }
           // bookmark search
           bookmarks.searchEventInit();
+          // return any pending callbacks
+          for (var i in that.callbacks) {
+            that.callbacks[i].call(null, bookmarks);
+          }
         });
-        // return any pending callbacks
-        for (var i in that.callbacks) {
-          that.callbacks[i].call();
-        }
       });
     }
   },

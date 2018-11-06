@@ -28,3 +28,5 @@
 1. 书签：
     - 注意toggleClass，有第二个参数，规定是移除还是添加样式
     - 提供访问chrome://extensions/的方式 ，用a标签不行，需要使用chrome.tabs.create或chrome.tabs.update
+1. 其他：
+    - 利用FileReader读取文件，以及如何简单的导出文件  

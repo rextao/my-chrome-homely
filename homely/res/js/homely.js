@@ -399,7 +399,7 @@ $(document).ready(function () {
       $("#links").show();
       settingGeneral.initHotKeys(e);
     });
-    bookmarksCallbacks.push(function () {
+    bookmarksCallbacks.push(function (bookmarks) {
       $("#menu-bookmarks").click(function (e) {
         settingGeneral.initHotKeys(e);
       });
@@ -408,6 +408,11 @@ $(document).ready(function () {
         label.show();
       } else {
         label.parent().attr("title", label.text());
+      }
+      // 增加一个双书签模式，即根据选项覆盖links内容（效率低下）
+      if(settings.bookmarks["double"]){
+        bookmarks.layoutDial(6,'links');
+        $('#menu-links span').text('快捷书签');
       }
     });
 
