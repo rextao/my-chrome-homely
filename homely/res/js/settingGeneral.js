@@ -335,7 +335,7 @@ SettingGeneral.prototype = {
             closeDropdowns();
             // select block by number
             selectBlk(nums.indexOf(key), panelId);
-        }).bind('`', function (e, key) {
+          }).bind('`', function (e, key) {
             closeDropdowns();
             if (linksHotkeys.curBlk === -1) selectBlk(0, panelId);
             var i = (linksHotkeys.curBtn === -1 ? 0 : (linksHotkeys.curBtn + (key === "[" ? -1 : 1)) % linksHotkeys.blk.length);
@@ -351,7 +351,25 @@ SettingGeneral.prototype = {
         }
         // 如果是拨号布局
         if(menuId === "menu-bookmarks" && $('#bookmarks .dial')) {
-
+          Mousetrap.bind(nums, function (e, key) {
+            closeDropdowns();
+            $('.dial div').removeClass('on');
+            $('.dial div').eq(nums.indexOf(key)).addClass('on');
+          }).bind("tab", function (e, key) {
+            var sel = $(".dial .on").index();
+            $('.dial div').removeClass('on');
+            sel = sel + 1;
+            $('.dial div').eq(sel).addClass('on');
+            e.preventDefault();
+          }).bind('enter',function () {
+            if($(".dial .on")){
+              $(".dial .on").find('a')[0].click();
+            }
+          }).bind('`',function () {
+            if($(".dial .on")){
+              $(".dial .on").find('a')[0].click();
+            }
+          });
         }
       }
     }

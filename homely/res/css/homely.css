@@ -242,4 +242,11 @@ input[type=range] {
 }
 .dial .item:hover {
     text-decoration: none;
+    border-radius: 0;
+}
+.dial .t-c p{
+    color: #fff;
+}
+.dial .t-c.on .item{
+    border-radius: 0;
 }
