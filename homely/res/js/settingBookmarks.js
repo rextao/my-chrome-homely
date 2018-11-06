@@ -32,6 +32,8 @@ SettingBookmarks.prototype = {
     });
     // ------配置是否点击了启用按钮
     $('#settings-bookmarks-enable').prop('checked', this.settings.bookmarks['enable']);
+    // ------检查是否为双书签模式
+    $('#settings-bookmarks-double').prop('checked', this.settings.bookmarks['double']);
     // ------布局方式
     $(`.settings-bookmarks-layout-hook input[value=${this.settings.bookmarks['layout']}]`).prop('checked', true);
 
@@ -57,6 +59,7 @@ SettingBookmarks.prototype = {
     // 标识是否删除权限失败
     let revokeError = false;
     this.settings.bookmarks['enable'] = $('#settings-bookmarks-enable').prop('checked');
+    this.settings.bookmarks['double'] = $('#settings-bookmarks-double').prop('checked');
     this.settings.bookmarks['layout'] = $('.settings-bookmarks-layout-hook input:checked').prop('value');
     this.settings.bookmarks['bookmarklets'] = $('#settings-bookmarks-bookmarklets').prop('checked');
     this.settings.bookmarks['foldercontents'] = $('#settings-bookmarks-foldercontents').prop('checked');
@@ -117,6 +120,11 @@ SettingBookmarks.prototype = {
           root.title = "Bookmarks";
           const bookmarks = new Bookmarks(that.settings.bookmarks, that.settings.style, root);
           const layout = that.settings.bookmarks['layout'];
+          // 增加一个双书签模式，即根据选项覆盖links内容（效率低下）
+          if(that.settings.bookmarks["double"]){
+            bookmarks.layoutDial(6,'links');
+            $('#menu-links span').text('快捷书签');
+          }
           switch (layout) {
             case 'folder':
               bookmarks.layoutFolder();
@@ -155,7 +163,7 @@ SettingBookmarks.prototype = {
         if (success) {
           $('.settings-perm-bookmarks').removeClass('has-warning').addClass('has-success');
           $('#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, '
-            + '#settings-bookmarks-merge,.settings-bookmarks-layout-hook input')
+            + '#settings-bookmarks-merge,.settings-bookmarks-layout-hook input,#settings-bookmarks-double')
             .prop('disabled', false).parent().removeClass('text-muted');
           $('#settings-bookmarks-above').prop('disabled', !$('#settings-bookmarks-merge').prop('checked'))
             .parent().toggleClass('text-muted', !$('#settings-bookmarks-merge').prop('checked'));
@@ -167,7 +175,7 @@ SettingBookmarks.prototype = {
       });
     } else {
       $('#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, '
-        + '#settings-bookmarks-merge, #settings-bookmarks-above,.settings-bookmarks-layout-hook input')
+        + '#settings-bookmarks-merge, #settings-bookmarks-above,.settings-bookmarks-layout-hook input,#settings-bookmarks-double')
         .prop('disabled', true).parent().addClass('text-muted');
     }
   },

@@ -142,7 +142,9 @@ $(document).ready(function () {
     },
     "bookmarks": {
       "enable": false,
-      // 布局方式，，文件夹式folder，扁平化布局flatten
+      // 双书签模式，dial与扁平化书签都显示
+      "double":true,
+      // 布局方式，，文件夹式folder，扁平化布局flatten，拨号式dial
       "layout":"flatten",
       "bookmarklets": true,
       "foldercontents": true,
@@ -225,7 +227,7 @@ $(document).ready(function () {
     }).keyup(function (e) {
       if (e.keyCode === 17) ctrlDown = false;
     });
-    // special link handling
+    // 处理链接是chrome://这样的
     var fixLinkHandling = function fixLinkHandling(context) {
       // open Chrome links via Tabs API
       $(".link-chrome", context).off("click").click(function (e) {
@@ -251,8 +253,6 @@ $(document).ready(function () {
     /******************* 运行init函数，初始化页面开始需要的内容**************/
     /******************有些功能需要根据setting里配置的值来确定如何初始化******/
     let bookmarksCallbacks = [];
-    let weatherCallbacks = [];
-    let proxyCallbacks = [];
     // 链接
     const settingLinks = new SettingLinks(settings.links, settings, fixLinkHandling);
     settingLinks.init();
@@ -269,13 +269,10 @@ $(document).ready(function () {
     const settingGeneral = new SettingGeneral(settings.general, settings, ajaxPerms);
     settingGeneral.init();
     settingGeneral.initExtensions(fixLinkHandling);
-    settingGeneral.initWeather(weatherCallbacks,ajaxPerms);
-    settingGeneral.initProxy(proxyCallbacks,ajaxPerms);
     // 设置（样式）
     const settingStyle = new SettingStyle(settings.style);
     settingStyle.init();
-
-
+    /***********************第一次运行*********************************/
     if (firstRun) {
       var alert = $("<div/>").addClass("alert alert-success alert-dismissable");
       alert.append($("<button/>").addClass("close").attr("data-dismiss", "alert").html("&times;").click(function (e) {
@@ -283,23 +280,6 @@ $(document).ready(function () {
       }));
       alert.append("<span><strong>欢迎来到" + manif.name + "!</strong>");
       $("#alerts").append(alert);
-    }
-    // switch to links page
-    $("#menu-links").click(function (e) {
-      $(".navbar-right li").removeClass("active");
-      $(this).addClass("active");
-      $(".main").hide();
-      $("#links").show();
-    });
-
-    // image初始化,根据配置的不同，显示不同信息
-    switch (settings.style["background"].image) {
-      case "":
-        $("#settings-style-background-image").prop("placeholder", "(无图模式)");
-        break;
-      case "../img/bg.png":
-        $("#settings-style-background-image").prop("placeholder", "(默认图片)");
-        break;
     }
     /*******************点击-设置-下拉框，个性化、关于等按钮事件*******************/
     /*******************show.bs.modal打开模态框后，配置一些信息**************************/
@@ -316,16 +296,52 @@ $(document).ready(function () {
       // 默认显示在第一个（链接）
       $($("#settings-tabs a")[0]).click();
     });
+    // 导入
+    $("#settings-import").click(function (e) {
+      $("#settings-import-file").click();
+    });
+    $("#settings-import-file").change(function (e) {
+      // if a file is selected
+      if (this.files.length) {
+        var file = this.files.item(0);
+        var reader = new FileReader;
+        reader.readAsText(file);
+        reader.onload = function readerLoaded() {
+          $("#settings-import-file").val("");
+          var toImport;
+          try {
+            toImport = JSON.parse(reader.result);
+          } catch (e) {
+            return window.alert(file.name + " 好像不是一个json文件");
+          }
+          if (toImport && confirm("你是否想用" + file.name + "代替当前配置?")) {
+            // merge with current, import takes priority
+            settings = $.extend(true, {}, settings, toImport);
+            // copy links code whole
+            if (toImport["links"]) settings["links"] = toImport["links"];
+            // write to local storage
+            chrome.storage.local.set(settings, function () {
+              if (chrome.runtime.lastError) window.alert("不能保存: " + chrome.runtime.lastError.message);
+              else location.reload();
+            });
+          }
+        };
+      }
+    });
+    // 导出
+    $("#settings-export").click(function (e) {
+      var toExport = $.extend(true, {}, settings);
+      // 转换图片为uri浪费时间
+      delete toExport.style["background"].image;
+      // link has a download="homely.json" tag to force download
+      $(this).attr("href", "data:application/json;charset=UTF-8," + encodeURIComponent(JSON.stringify(toExport)))
+        .click().attr("href", "");
+    });
     // 点击设置-关于
     $('#about').on("show.bs.modal", function (e) {
       $(".ext-name").text(manif.name);
       $(".ext-ver").text(manif.version);
     });
-    /*******************setting 里面checkbox事件绑定**************************/
-    settingBookmarks.initEvent();
-    settingGeneral.initEvent();
-    settingHistory.initEvent();
-    settingStyle.initEvent();
     /*******************setting 模态框点击-保存-按钮**************************/
     $("#settings-save").click(function (e) {
       // 标识是否删除权限失败
@@ -346,13 +362,15 @@ $(document).ready(function () {
       $("#settings").on("hide.bs.modal", function (e) {
         e.preventDefault();
       });
-      // write to local storage
+      // 写入local storage
       chrome.storage.local.set(settings, function () {
+        // 保存错误
         if (chrome.runtime.lastError) {
           $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("Unable to save: " + chrome.runtime.lastError.message));
           $("#settings-save").prop("disabled", false).empty().append(fa("check", false)).append(" Save and reload");
           return;
         }
+        // 存在权限错误
         if (revokeError) {
           $("#settings-alerts").append($("<div/>").addClass("alert alert-warning").text("Failed to revoke permissions: " + chrome.runtime.lastError.message));
         }
@@ -366,52 +384,19 @@ $(document).ready(function () {
         }, 250);
       });
     });
-    // import settings from file
-    $("#settings-import").click(function (e) {
-      $("#settings-import-file").click();
-    });
-    $("#settings-import-file").change(function (e) {
-      // if a file is selected
-      if (this.files.length) {
-        var file = this.files.item(0);
-        var reader = new FileReader;
-        reader.readAsText(file);
-        reader.onload = function readerLoaded() {
-          $("#settings-import-file").val("");
-          var toImport;
-          try {
-            toImport = JSON.parse(reader.result);
-          } catch (e) {
-            return window.alert(file.name + " doesn't seem to be a valid JSON file.");
-          }
-          if (toImport && confirm("Do you want to replace your current settings with those in " + file.name + "?")) {
-            // merge with current, import takes priority
-            settings = $.extend(true, {}, settings, toImport);
-            // copy links code whole
-            if (toImport["links"]) settings["links"] = toImport["links"];
-            // write to local storage
-            chrome.storage.local.set(settings, function () {
-              if (chrome.runtime.lastError) window.alert("Unable to save: " + chrome.runtime.lastError.message);
-              else location.reload();
-            });
-          }
-        };
-      }
-    });
-    // export settings to file
-    $("#settings-export").click(function (e) {
-      var toExport = $.extend(true, {}, settings);
-      // converting image to URI takes too long, hangs browser
-      delete toExport.style["background"].image;
-      // link has a download="homely.json" tag to force download
-      $(this).attr("href", "data:application/json;charset=UTF-8," + encodeURIComponent(JSON.stringify(toExport)))
-        .click().attr("href", "");
-    });
 
+    /*******************setting 里面checkbox事件绑定**************************/
+    settingBookmarks.initEvent();
+    settingGeneral.initEvent();
+    settingHistory.initEvent();
+    settingStyle.initEvent();
 
-
-    // initHotKeys通过点击标题，来运行，因为可能有些快捷键需要进入某个内容页才起作用
-    $("#menu-links").click(function(e){
+    /*******************自定义链接、书签的点击事件**************************/
+    $("#menu-links").click(function (e) {
+      $(".navbar-right li").removeClass("active");
+      $(this).addClass("active");
+      $(".main").hide();
+      $("#links").show();
       settingGeneral.initHotKeys(e);
     });
     bookmarksCallbacks.push(function () {
@@ -425,19 +410,8 @@ $(document).ready(function () {
         label.parent().attr("title", label.text());
       }
     });
-    weatherCallbacks.push(function () {
-      if (settings.style["topbar"].labels) $("#menu-weather .menu-label").show();
-    });
-    proxyCallbacks.push(function () {
-      var label = $("#menu-proxy .menu-label");
-      if (settings.style["topbar"].labels) {
-        label.show();
-      } else {
-        label.parent().attr("title", label.text());
-      }
-    });
 
-    // manually adjust modal-open class as not available at event trigger
+    // 打开模态窗，触发快捷键绑定
     $(".modal").on("show.bs.modal", function (e) {
       $(document.body).addClass("modal-open");
       settingGeneral.initHotKeys(e);
@@ -445,6 +419,9 @@ $(document).ready(function () {
       $(document.body).removeClass("modal-open");
       settingGeneral.initHotKeys(e);
     });
+    // 检测chrome隐身状态
+    if (chrome.extension.inIncognitoContext) $(".incognito").removeClass("incognito");
+
     if (settings.bookmarks["merge"]) {
       settingGeneral.initHotKeys({});
       // show both links and bookmarks, hide switch links
@@ -454,9 +431,8 @@ $(document).ready(function () {
       // open on links page
       $("#menu-links").click();
     }
-    // show incognito state
-    if (chrome.extension.inIncognitoContext) $(".incognito").removeClass("incognito");
-    // fade in once all is loaded
+    // body动画效果
     $(document.body).fadeIn();
+
   });
 });

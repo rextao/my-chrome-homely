@@ -180,8 +180,8 @@ Bookmarks.prototype = {
   },
   // ---------dial拨号式布局------------------------/
   // num表示一行渲染几个图标，颜色随机
-  layoutDial(num){
-    const $bookmarks = $('#bookmarks');
+  layoutDial(num,id){
+    const $bookmarks = $(`#${id || 'bookmarks'}`);
     $bookmarks.empty();
     $bookmarks.addClass('row').removeClass('panel panel-default');
     const bms = this.root.children[1];
