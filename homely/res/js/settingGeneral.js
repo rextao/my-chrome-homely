@@ -21,6 +21,10 @@ SettingGeneral.prototype = {
     this.initStopWatch();
     // 记事本
     this.initNotePad();
+    // 天气
+    this.initWeather();
+    // 代理
+    this.initProxy();
   },
   // 打开设置面板时，初始化设置面板的一些值
   populate(){
@@ -328,29 +332,8 @@ SettingGeneral.prototype = {
         Mousetrap.stopCallback = mousetrapStop;
         // 链接与书签页面样式一致，使用相同快捷键
         const menuId = $("nav li.active").attr("id");
-        // 链接与书签（扁平化布局）的快捷键
-        if (menuId === "menu-links" || menuId === "menu-bookmarks" || that.settings.bookmarks["merge"]) {
-          const panelId = menuId.split('-')[1];
-          Mousetrap.bind(nums, function (e, key) {
-            closeDropdowns();
-            // select block by number
-            selectBlk(nums.indexOf(key), panelId);
-          }).bind('`', function (e, key) {
-            closeDropdowns();
-            if (linksHotkeys.curBlk === -1) selectBlk(0, panelId);
-            var i = (linksHotkeys.curBtn === -1 ? 0 : (linksHotkeys.curBtn + (key === "[" ? -1 : 1)) % linksHotkeys.blk.length);
-            if (i < 0) i += linksHotkeys.blk.length;
-            selectBtn(i);
-          }).bind("enter", function (e, key) {
-            // clear selection
-            setTimeout(clearSel, 50);
-          }).bind("backspace", function (e, key) {
-            // clear selection and lose focus
-            if (linksHotkeys.curBtn > -1) $(linksHotkeys.blk[linksHotkeys.curBtn]).blur();
-          });
-        }
         // 如果是拨号布局
-        if(menuId === "menu-bookmarks" && $('#bookmarks .dial')) {
+        if(menuId === "menu-bookmarks" && $('#bookmarks .dial').length !== 0) {
           Mousetrap.bind(nums, function (e, key) {
             closeDropdowns();
             $('.dial div').removeClass('on');
@@ -369,6 +352,29 @@ SettingGeneral.prototype = {
             if($(".dial .on")){
               $(".dial .on").find('a')[0].click();
             }
+          });
+        }
+        // 链接与书签（扁平化布局）的快捷键
+        if (menuId === "menu-links" || menuId === "menu-bookmarks" || that.settings.bookmarks["merge"]) {
+          const panelId = menuId.split('-')[1];
+          Mousetrap.bind(nums, function (e, key) {
+            closeDropdowns();
+            selectBlk(nums.indexOf(key), panelId);
+          }).bind('`', function (e, key) {
+            closeDropdowns();
+            if (linksHotkeys.curBlk === -1) selectBlk(0, panelId);
+            var i = (linksHotkeys.curBtn === -1 ? 0 : (linksHotkeys.curBtn + (key === "[" ? -1 : 1)) % linksHotkeys.blk.length);
+            if (i < 0) i += linksHotkeys.blk.length;
+            selectBtn(i);
+          }).bind("enter", function (e, key) {
+            // clear selection
+            setTimeout(clearSel, 50);
+          }).bind("backspace", function (e, key) {
+            // clear selection and lose focus
+            if (linksHotkeys.curBtn > -1) $(linksHotkeys.blk[linksHotkeys.curBtn]).blur();
+          }).bind("/", function(e, key) {
+            $("#bookmarks-search").focus();
+            e.preventDefault();
           });
         }
       }
@@ -620,8 +626,13 @@ SettingGeneral.prototype = {
     }
   },
   // 天气
-  initWeather(weatherCallbacks){
+  initWeather(){
     const that = this;
+    const weatherCallbacks = [];
+    weatherCallbacks.push(function () {
+      // 函数在异步ajax中调用
+      if (that.settings.style["topbar"].labels) $("#menu-weather .menu-label").show();
+    });
     if (this.general["weather"].show && !chrome.extension.inIncognitoContext) {
       chrome.permissions.contains({
         origins: that.ajaxPerms["weather"]
@@ -665,8 +676,18 @@ SettingGeneral.prototype = {
     }
   },
   // 代理
-  initProxy(proxyCallbacks){
+  initProxy(){
     const that = this;
+    // 当回调完成后，再进行判断
+    const proxyCallbacks = [];
+    proxyCallbacks.push(function () {
+      var label = $("#menu-proxy .menu-label");
+      if (that.settings.style["topbar"].labels) {
+        label.show();
+      } else {
+        label.parent().attr("title", label.text());
+      }
+    });
     if (that.general["proxy"]) {
       chrome.permissions.contains({
         origins: that.ajaxPerms["proxy"]
