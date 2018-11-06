@@ -58,7 +58,20 @@ SettingStyle.prototype = {
     // -----配色方案
     $("#settings-style-panel label.btn-" + this.style["panel"]).click();
     // 背景
-    $("#settings-style-background-image").data("val", this.style["background"].image).prop("placeholder", "(未改变)");
+    // 保存时，会使用这个值
+    $("#settings-style-background-image").data("val", this.style["background"].image);
+    // image初始化,根据配置的不同，显示不同信息
+    switch (this.style["background"].image) {
+      case "":
+        $("#settings-style-background-image").prop("placeholder", "(无图模式)");
+        break;
+      case "../img/bg.png":
+        $("#settings-style-background-image").prop("placeholder", "(默认图片)");
+        break;
+      default:
+        // 使用this.style["background"].image会有卡顿
+        $("#settings-style-background-image").prop("placeholder", 'data:image/jpeg;base64....');
+    }
     $("#settings-style-background-repeat").prop("checked", this.style["background"].repeat);
     $("#settings-style-background-centre").prop("checked", this.style["background"].centre);
     $("#settings-style-background-fixed").prop("checked", this.style["background"].fixed);
