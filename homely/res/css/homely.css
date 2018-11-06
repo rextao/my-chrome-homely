@@ -222,6 +222,9 @@ input[type=range] {
     margin-bottom: 16px;
 }
 /*新增样式*/
+html{
+    overflow-x: hidden;
+}
 .hide{
     display: none;
 }
