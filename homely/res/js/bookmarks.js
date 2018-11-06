@@ -66,7 +66,7 @@ Bookmarks.prototype = {
           // 避免无名字的标签，用一个font图标表示
           const fonts = ['trophy', 'tree', 'tint', 'sign-language', 'globe', 'gift'];
           if (!title) {
-            title = `<i class="fa fa-${fonts[i % 6]}"></i>`;
+            title = `<span class="fa fa-${fonts[i % 6]}"></span>`;
           }
           if (awrapper) {
             html += `<li><a href="${item.url}" >${title}</a></li>`;
