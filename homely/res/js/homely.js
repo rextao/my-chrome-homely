@@ -145,7 +145,7 @@ $(document).ready(function () {
       // 双书签模式，dial与扁平化书签都显示
       "double":true,
       // 布局方式，，文件夹式folder，扁平化布局flatten，拨号式dial
-      "layout":"flatten",
+      "layout":"dial",
       "bookmarklets": true,
       "foldercontents": true,
       "split": false,
@@ -183,10 +183,10 @@ $(document).ready(function () {
     },
     "style": {
       "font": "Segoe UI",
-      "fluid": false,
+      "fluid": true,
       "topbar": {
-        "fix": false,
-        "dark": false,
+        "fix": true,
+        "dark": true,
         "labels": true
       },
       "panel": "default",
@@ -417,7 +417,7 @@ $(document).ready(function () {
         stock.bindEvent();
       }
       $stockWrapper.show();
-      stock.getStockData('http://hq.sinajs.cn/list=sh600118,sh600117');
+      stock.getStockData('http://qt.gtimg.cn/q=sz000651');
 
     });
     let stock = {
@@ -440,11 +440,27 @@ $(document).ready(function () {
         })
       },
       getStockData(url){
-        fetch(url).then((data) =>{
-          console.log(data);
-        }).catch((err) => {
-          console.log(err)
-        })
+        $.ajax({
+          type : "GET",
+          url : url,
+          cache : "false",
+          timeout : 2000,
+          success : function(data) {
+            let temp = data.split('~');
+            let arr = [];
+            arr.push(temp[1]);// 1: 股票名字
+            arr.push(temp[2]);// 2: 股票代码
+            arr.push(temp[3]);// 3: 当前价格
+            arr.push(temp[30]);// 30: 时间
+            arr.push(temp[31]);// 31: 涨跌
+            arr.push(`${temp[32]}%`);// 32: 涨跌%
+            arr.push(temp[33]);// 33: 最高
+            arr.push(temp[34]);// 34: 最低
+            console.log(arr)
+          },
+          error : function() {
+          }
+        });
       }
     };
 
