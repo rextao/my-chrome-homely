@@ -203,6 +203,9 @@ $(document).ready(function () {
         "enable": false,
         "content": ""
       }
+    },
+    "stock":{
+      position :['600118','600131','600462','000001','000651','002555','002907','300612']
     }
   };
   // required permissions
@@ -399,6 +402,53 @@ $(document).ready(function () {
       $("#links").show();
       settingGeneral.initHotKeys(e);
     });
+    /*******************点击time,显示股票信息--开始**************************/
+    // 主要目的是，点击页面任何区域，都可以关闭股票面板
+    $('html').on('click',function(e){
+      if(e.target.id !== 'time'){
+        $('#stockWrapper').hide();
+      }
+    });
+    $('#time').on('click',function(){
+      // 如果已经存在股票信息，不再构建
+      let $stockWrapper = $('#stockWrapper');
+      if($stockWrapper.length === 0){
+        stock.createStockDiv();
+        stock.bindEvent();
+      }
+      $stockWrapper.show();
+      stock.getStockData('http://hq.sinajs.cn/list=sh600118,sh600117');
+
+    });
+    let stock = {
+      createStockDiv(){
+        let html = `
+        <div class="panel panel-default" id="stockWrapper">
+          <div class="panel-body">
+            <input type="checkbox" id="freshTimer">定时60s刷新
+            <button class="btn btn-default" id="fresh">手动刷新</button>
+            <table class="table">
+                <tr><td>123</td><td>123</td></tr>
+            </table>
+          </div>
+        </div>`;
+        $('#links').append(html);
+      },
+      bindEvent(){
+        $('#fresh').on('click',function(){
+
+        })
+      },
+      getStockData(url){
+        fetch(url).then((data) =>{
+          console.log(data);
+        }).catch((err) => {
+          console.log(err)
+        })
+      }
+    };
+
+    /*******************点击time,显示股票信息--结束**************************/
     bookmarksCallbacks.push(function (bookmarks) {
       $("#menu-bookmarks").click(function (e) {
         settingGeneral.initHotKeys(e);
