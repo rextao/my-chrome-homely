@@ -543,6 +543,24 @@
                 </div>
             </div>
         </div>
+        <div class="panel panel-default" id="stockWrapper">
+            <p id="stockPosition">
+                持仓<span class="sum"></span>只股票：
+                <textarea name="postion" cols="40" rows="2"></textarea>
+                <button class="btn btn-default">更改持仓</button>
+            </p>
+            <p id="fresh">
+                <span id="freshTimer">
+                    <input type="checkbox">定时<input type="text" placeholder="60">s刷新
+                </span>
+                <button class="btn btn-default" id="saveFreshParam">保存刷新参数</button>
+                <button class="btn btn-default" id="freshHand">手动刷新</button>
+                <span>数据刷新时间：<span id="stockTime"></span></span>
+            </p>
+            <div class="panel-body">
+                <table class="table"></table>
+            </div>
+        </div>
         <script src="../../lib/js/jquery.min.js"></script>
         <script src="../../lib/js/jquery.sortable.min.js"></script>
         <script src="../../lib/js/bootstrap.min.js"></script>

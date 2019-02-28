@@ -414,26 +414,26 @@ $(document).ready(function () {
       }
     });
     $('#time').on('click',function(){
-      // 如果已经存在股票信息，不再构建
-      let $stockWrapper = $('#stockWrapper');
-      if($stockWrapper.length === 0){
+      // 快捷书签隐藏时，不显示股票面板
+      if($('#links').css('display') !== 'none'){
         stock.init();
+        $('#stockWrapper').show();
+        // 设置显示持仓的股票
+        $('#stockPosition textarea').val(settings.stock.position);
+        stock.getStockData();
       }
-      $stockWrapper.show();
-      // 设置显示持仓的股票
-      $('#stockPosition textarea').val(settings.stock.position);
-      stock.getStockData();
     });
     let stock = {
       timer:'',
       init(){
-        this.createStockDiv();
         this.bindEvent();
         const checked = settings.stock.freshCheckBox;
         const freshVal = settings.stock.freshTimer;
         // 设置check与输入框值
         $('#freshTimer').find('input[type=checkbox]').prop('checked',checked);
         $('#freshTimer').find('input[type=text]').val(freshVal);
+        // html配置有几个股票
+        $('#stockPosition .sum').text(settings.stock.position.split(',').length);
         if(checked){
           stock.freshTimer(freshVal *1000);
         }else {
@@ -441,32 +441,8 @@ $(document).ready(function () {
           stock.timer = '';
         }
       },
-      // 构建股票的div
-      createStockDiv(){
-        let html = `
-        <div class="panel panel-default" id="stockWrapper">
-          <p id="stockPosition">
-          持仓${settings.stock.position.split(',').length}只股票：
-          <textarea name="postion" id="" cols="40" rows="2"></textarea>
-          <button class="btn btn-default">更改持仓</button>
-          </p>
-          <p id="fresh">
-            <span id="freshTimer">
-                <input type="checkbox">定时<input type="text" placeholder="60">s刷新
-            </span>
-            <button class="btn btn-default" id="saveFreshParam">保存刷新参数</button>
-            <button class="btn btn-default" id="fresh">手动刷新</button>
-            <span>数据刷新时间：<span id="stockTime"></span></span>
-          </p>
-          <div class="panel-body">
-            <table class="table">
-            </table>
-          </div>
-        </div>`;
-        $('#links').append(html);
-      },
       bindEvent(){
-        $('#fresh').on('click',function(){
+        $('#freshHand').on('click',function(){
           stock.getStockData();
         });
         $('#saveFreshParam').on('click',function(){
