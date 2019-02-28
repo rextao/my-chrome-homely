@@ -141,11 +141,11 @@ $(document).ready(function () {
       ]
     },
     "bookmarks": {
-      "enable": false,
+      "enable": true,
       // 双书签模式，dial与扁平化书签都显示
       "double":true,
       // 布局方式，，文件夹式folder，扁平化布局flatten，拨号式dial
-      "layout":"dial",
+      "layout":"flatten",
       "bookmarklets": true,
       "foldercontents": true,
       "split": false,
@@ -205,7 +205,11 @@ $(document).ready(function () {
       }
     },
     "stock":{
-      position :['600118','600131','600462','000001','000651','002555','002907','300612']
+      // 默认只有上证指数
+      url:'http://qt.gtimg.cn/q=sh000001',
+      position:'',// 600118,600131,600462,000001,000651,002555,002907,300612,000725
+      freshCheckBox:true,
+      freshTimer:60
     }
   };
   // required permissions
@@ -405,7 +409,7 @@ $(document).ready(function () {
     /*******************点击time,显示股票信息--开始**************************/
     // 主要目的是，点击页面任何区域，都可以关闭股票面板
     $('html').on('click',function(e){
-      if(e.target.id !== 'time'){
+      if(e.target.id !== 'time' && $(e.target).parents('#stockWrapper').length === 0){
         $('#stockWrapper').hide();
       }
     });
@@ -413,22 +417,49 @@ $(document).ready(function () {
       // 如果已经存在股票信息，不再构建
       let $stockWrapper = $('#stockWrapper');
       if($stockWrapper.length === 0){
-        stock.createStockDiv();
-        stock.bindEvent();
+        stock.init();
       }
       $stockWrapper.show();
-      stock.getStockData('http://qt.gtimg.cn/q=sz000651');
-
+      // 设置显示持仓的股票
+      $('#stockPosition textarea').val(settings.stock.position);
+      stock.getStockData();
     });
     let stock = {
+      timer:'',
+      init(){
+        this.createStockDiv();
+        this.bindEvent();
+        const checked = settings.stock.freshCheckBox;
+        const freshVal = settings.stock.freshTimer;
+        // 设置check与输入框值
+        $('#freshTimer').find('input[type=checkbox]').prop('checked',checked);
+        $('#freshTimer').find('input[type=text]').val(freshVal);
+        if(checked){
+          stock.freshTimer(freshVal *1000);
+        }else {
+          clearTimeout(stock.timer);
+          stock.timer = '';
+        }
+      },
+      // 构建股票的div
       createStockDiv(){
         let html = `
         <div class="panel panel-default" id="stockWrapper">
-          <div class="panel-body">
-            <input type="checkbox" id="freshTimer">定时60s刷新
+          <p id="stockPosition">
+          持仓${settings.stock.position.split(',').length}只股票：
+          <textarea name="postion" id="" cols="40" rows="2"></textarea>
+          <button class="btn btn-default">更改持仓</button>
+          </p>
+          <p id="fresh">
+            <span id="freshTimer">
+                <input type="checkbox">定时<input type="text" placeholder="60">s刷新
+            </span>
+            <button class="btn btn-default" id="saveFreshParam">保存刷新参数</button>
             <button class="btn btn-default" id="fresh">手动刷新</button>
+            <span>数据刷新时间：<span id="stockTime"></span></span>
+          </p>
+          <div class="panel-body">
             <table class="table">
-                <tr><td>123</td><td>123</td></tr>
             </table>
           </div>
         </div>`;
@@ -436,31 +467,88 @@ $(document).ready(function () {
       },
       bindEvent(){
         $('#fresh').on('click',function(){
-
+          stock.getStockData();
+        });
+        $('#saveFreshParam').on('click',function(){
+          settings.stock.freshCheckBox = $('#freshTimer').find('input[type=checkbox]').prop('checked');
+          settings.stock.freshTimer = $('#freshTimer').find('input[type=text]').val();
+          chrome.storage.local.set({"stock": settings.stock});
+          location.reload();// 重新加载页面
+        });
+        $('#stockPosition button').on('click',function(){
+          settings.stock.position = $('#stockPosition textarea').val();
+          chrome.storage.local.set({"stock": settings.stock});
+          location.reload();// 重新加载页面
         })
       },
-      getStockData(url){
+      // 根据data.postion构建url
+      createStockPositionUrl(){
+        const arr = settings.stock.position.split(',');
+        let url='';
+        arr.forEach((item)=>{
+          if(item.startsWith('00')){
+            url += `,sz${item}`
+          }else {
+            url += `,sh${item}`
+          }
+        });
+        return url;
+      },
+      // 定时请求数据
+      freshTimer(time){
+        this.timer = setTimeout(()=>{
+          this.getStockData();
+          this.freshTimer(time)
+        },time)
+      },
+      // 从服务器获取stock数据
+      getStockData(){
         $.ajax({
           type : "GET",
-          url : url,
+          url : `${settings.stock.url}${stock.createStockPositionUrl()}`,
           cache : "false",
           timeout : 2000,
           success : function(data) {
-            let temp = data.split('~');
-            let arr = [];
-            arr.push(temp[1]);// 1: 股票名字
-            arr.push(temp[2]);// 2: 股票代码
-            arr.push(temp[3]);// 3: 当前价格
-            arr.push(temp[30]);// 30: 时间
-            arr.push(temp[31]);// 31: 涨跌
-            arr.push(`${temp[32]}%`);// 32: 涨跌%
-            arr.push(temp[33]);// 33: 最高
-            arr.push(temp[34]);// 34: 最低
-            console.log(arr)
+            stock.createTable(data);
           },
           error : function() {
           }
         });
+      },
+      // data数据为字符串，每个stock数据会用一个;和换行符来分割
+      createTable(data){
+        const $table = $('#stockWrapper table');
+        $table.empty();
+        const stock = data.split(';\n');
+        let html = '<tr class="title"><td>股票代码</td><td>股票名字</td><td>当前价格</td><td>涨跌幅</td><td>最高价</td><td>最低</td></tr>';
+        stock.forEach((item,index) => {
+          if(item !== ''){
+            let temp = item.split('~');
+            // 只获取一遍时间
+            if(index ===0){
+              let time = temp[30];
+              time = `${time.substring(8,10)}:${time.substring(10,12)}:${time.substring(12)}`;
+              $('#stockTime').text(time)
+            }
+            // 1:股票名字2: 股票代码3: 当前价格30: 时间32: 涨跌%33: 最高34: 最低
+            html += `<tr>
+                        <td>${temp[2]}</td>
+                        <td>${temp[1]}</td>`;
+            // 增加涨点颜色配置
+            if(temp[32] >=0){
+              html += `<td style="color:red;font-weight:900;">${temp[3]}</td>
+                       <td style="color:red;font-weight:900;">${temp[32]}%</td>`
+            }else{
+              html += `<td style="color:#00ff00;font-weight:900;">${temp[3]}</td>
+                       <td style="color:#00ff00;font-weight:900;">${temp[32]}%</td>`
+            }
+            html += `<td>${temp[33]}</td>
+                     <td>${temp[34]}</td>
+                    </tr>`;
+            // arr.push(temp[31]);// 31: 涨跌
+          }
+        });
+        $table.append(html);
       }
     };
 

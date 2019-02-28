@@ -1,2 +1,10 @@
-# 股票
-1. https://blog.csdn.net/a241903820/article/details/79971137
+# 20190228(8h)
+1. 开发摸鱼小工具，在chrome插件tab页获取股票信息
+1. 功能：点击左上角timer，显示股票面板
+    - input框可以输入新的股票，点击“更改持仓”，会保存（英文逗号+股票代码）
+    - 设置是否定时刷新，定时刷新频率，手动刷新
+    - table显示股票信息，以及数据刷新时间
+1. 主要遇到的问题：
+    - sina接口返回的script，但chrome不允许访问，在manifest增加content_security_policy字段无果
+    - 官方api基本查看了content_security_policy配置，但还是解决不了禁止访问的问题；
+    - 后更换了数据接口

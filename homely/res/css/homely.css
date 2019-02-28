@@ -253,13 +253,46 @@ html{
 .dial .t-c.on .item{
     border-radius: 0;
 }
-
+/*滚动条样式*/
+*::-webkit-scrollbar{
+    width: 5px;
+    height: 4px;
+}
+*::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.2);
+}
+*::-webkit-scrollbar-track{
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0);
+    border-radius: 0;
+    background: rgba(0,0,0,0);
+}
+/*股票面板样式*/
 #stockWrapper{
     position: absolute;
     left: 0;
     bottom: 0;
-    width: 300px;
+    width: 510px;
     height: 300px;
     background-color: transparent;
     color: #fff;
+    overflow-y:scroll;
+}
+#stockWrapper p{
+    margin: 0;
+}
+#stockTime {
+    font-size: 22px;
+}
+#stockWrapper table tr:hover{
+    background-color: #fff;
+    color: #000;
+}
+#stockWrapper textarea{
+    background:transparent;
+}
+#freshTimer input[type=text]{
+    width: 30px;
+    color: #000;
 }
