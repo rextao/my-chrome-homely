@@ -435,7 +435,7 @@ $(document).ready(function () {
         // html配置有几个股票
         $('#stockPosition .sum').text(settings.stock.position.split(',').length);
         if(checked){
-          stock.freshTimer(freshVal *1000);
+          this.freshControl(freshVal);
         }else {
           clearTimeout(stock.timer);
           stock.timer = '';
@@ -457,12 +457,51 @@ $(document).ready(function () {
           location.reload();// 重新加载页面
         })
       },
+      // 控制定时器，在大盘不开盘时不定时请求数据
+      // 只有在每周一到周五上午时段9:30-11:30，下午时段13:00-15:00
+      freshControl(freshVal){
+        const date = new Date();
+        const $stockInfo = $('#stockInfo');
+        const week = date.getDay();// 返回星期几，0为周日
+        const amStart = new Date(new Date().setHours(9)).setMinutes(30);
+        const amEnd = new Date(new Date().setHours(11)).setMinutes(30);
+        const pmStart = new Date(new Date().setHours(13)).setMinutes(0);
+        const pmEnd = new Date(new Date().setHours(15)).setMinutes(0);
+        let diff = 0;
+        const time = date.getTime();
+        $stockInfo.text('');
+        if(week===0 || week ===6){
+          console.log('今天是周末');
+          return false;// 不定时请求数据
+        }
+        if((time >= amStart && time <= amEnd) || (time >= pmStart && time <= pmEnd)){
+          $stockInfo.text(`stock数据${freshVal}s刷新`);
+          stock.freshTimer(freshVal *1000);
+          return true;
+        }else if(time < amStart){// 时间未到9点半
+          diff = amStart - time;
+          console.log(`还有${diff/1000/60}分钟上午开盘`);
+        }else if(time < pmStart){// 未到下午1点
+          diff = pmStart - time;
+          console.log(`还有${~~(diff/1000/60)}分钟下午开盘`);
+        }
+        // 如果未到开盘时间，定时等待开盘再发请求
+        setTimeout(function () {
+          stock.freshControl(freshVal);
+        },diff);
+        if(time > pmEnd){
+          $stockInfo.text(`stock数据不刷新`);
+          console.log(`收盘了~老铁`);
+          return false
+        }
+      },
       // 根据data.postion构建url
       createStockPositionUrl(){
         const arr = settings.stock.position.split(',');
         let url='';
         arr.forEach((item)=>{
-          if(item.startsWith('00')){
+          // 我国000或002开头的就是深证的，600开头的是上证的，300开头的是创业板 200开头的是深圳B股,900开头的是上海B股。
+          if(item.startsWith('000') || item.startsWith('002') || item.startsWith('300')){
             url += `,sz${item}`
           }else {
             url += `,sh${item}`

@@ -282,6 +282,9 @@ html{
 #stockWrapper p{
     margin: 0;
 }
+#stockWrapper .panel-body{
+    padding-bottom: 0;
+}
 #stockTime {
     font-size: 22px;
 }
