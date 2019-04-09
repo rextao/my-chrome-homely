@@ -279,6 +279,9 @@ html{
     color: #fff;
     overflow-y:scroll;
 }
+#stockWrapper a{
+    color: #fff;
+}
 #stockWrapper p{
     margin: 0;
 }
@@ -291,6 +294,12 @@ html{
 #stockWrapper table tr:hover{
     background-color: #fff;
     color: #000;
+}
+#stockWrapper table tr:hover a{
+    color: #000;
+}
+#stockWrapper table td:hover .badge{
+    background-color: #ff7d00;
 }
 #stockWrapper textarea{
     background:transparent;

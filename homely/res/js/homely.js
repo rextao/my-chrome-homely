@@ -500,14 +500,22 @@ $(document).ready(function () {
         const arr = settings.stock.position.split(',');
         let url='';
         arr.forEach((item)=>{
-          // 我国000或002开头的就是深证的，600开头的是上证的，300开头的是创业板 200开头的是深圳B股,900开头的是上海B股。
-          if(item.startsWith('000') || item.startsWith('002') || item.startsWith('300')){
-            url += `,sz${item}`
-          }else {
-            url += `,sh${item}`
-          }
+          url += `,${this.addStartsStock(item)}`;
         });
         return url;
+      },
+      // 根据股票代码，前面增加sz或sh等
+      addStartsStock(item){
+        // 先默认000001是上证指数
+        if(item === '000001'){
+          return `sh000001`
+        }
+        // 我国000或002开头的就是深证的，600开头的是上证的，300开头的是创业板 200开头的是深圳B股,900开头的是上海B股。
+        if(item.startsWith('000') || item.startsWith('002') || item.startsWith('300')){
+          return `sz${item}`;
+        }else {
+          return `sh${item}`;
+        }
       },
       // 定时请求数据
       freshTimer(time){
@@ -533,6 +541,8 @@ $(document).ready(function () {
       // data数据为字符串，每个stock数据会用一个;和换行符来分割
       createTable(data){
         const $table = $('#stockWrapper table');
+        const detailSina = 'http://finance.sina.com.cn/realstock/company';
+        const bigDetailSina = 'http://vip.stock.finance.sina.com.cn/quotes_service/view/cn_bill.php?symbol=';// 大单明细
         $table.empty();
         const stock = data.split(';\n');
         let html = '<tr class="title"><td>股票代码</td><td>股票名字</td><td>当前价格</td><td>涨跌幅</td><td>最高价</td><td>最低</td></tr>';
@@ -547,8 +557,8 @@ $(document).ready(function () {
             }
             // 1:股票名字2: 股票代码3: 当前价格30: 时间32: 涨跌%33: 最高34: 最低
             html += `<tr>
-                        <td>${temp[2]}</td>
-                        <td>${temp[1]}</td>`;
+                        <td><a href="${detailSina}/${this.addStartsStock(temp[2])}/nc.shtml?from=BaiduAladin" target="_blank" >${temp[2]}<span class="badge">实时数据</span></a></td>
+                        <td><a href="${bigDetailSina}${this.addStartsStock(temp[2])}" target="_blank" >${temp[1]}<span class="badge">大单</span></a></td>`;
             // 增加涨点颜色配置
             if(temp[32] >=0){
               html += `<td style="color:red;font-weight:900;">${temp[3]}</td>
