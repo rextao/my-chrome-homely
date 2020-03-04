@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        input {
+            height: 40px;
+            display: inline-block;
+        }
+        .input_box {
+            display: inline-block;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>快速生成service与const中的代码</h1>
+    <div class="wrapper">
+        <textarea name="" id="original" cols="50" rows="15" placeholder="原始接口"></textarea>
+        <textarea name="" id="const" cols="50" rows="15" placeholder="const下的文件"></textarea>
+        <textarea name="" id="service" cols="50" rows="15" placeholder="service下的文件"></textarea>
+        <div class="input_box">
+            <p>const的大写key前缀</p>
+            <p><input type="text" id="pre"></p>
+        </div>
+        <div class="input_box">
+            <p>action前缀</p>
+            <p><input type="text" id="actionPre"></p>
+        </div>
+        <button id="btn">生成</button>
+        <button id="clear">清空</button>
+    </div>
+    <script src="../../lib/js/jquery.min.js"></script>
+    <script src="../js/tools/index.js"></script>
+</body>
+</html>
