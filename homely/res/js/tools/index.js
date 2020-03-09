@@ -70,7 +70,7 @@
         const convertUrl = url.trim().replace(/'/g, '');
         return `${name}(payload) {
                     return $http.post(URL_API.${convertUrl}, payload);
-                },\n`
+                },`
     }
     function toLine(name) {
         return name.replace(/([A-Z])/g,"_$1").toLowerCase();
