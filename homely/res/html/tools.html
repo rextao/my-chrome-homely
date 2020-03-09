@@ -17,9 +17,10 @@
 <body>
     <h1>快速生成service与const中的代码</h1>
     <div class="wrapper">
-        <textarea name="" id="original" cols="50" rows="15" placeholder="原始接口"></textarea>
-        <textarea name="" id="const" cols="50" rows="15" placeholder="const下的文件"></textarea>
-        <textarea name="" id="service" cols="50" rows="15" placeholder="service下的文件"></textarea>
+        <textarea name="" id="original" cols="40" rows="15" placeholder="原始接口"></textarea>
+        <textarea name="" id="const" cols="40" rows="15" placeholder="const下的文件"></textarea>
+        <textarea name="" id="service" cols="40" rows="15" placeholder="service下的文件"></textarea>
+        <textarea name="" id="serviceNew" cols="40" rows="15" placeholder="新service文件"></textarea>
         <div class="input_box">
             <p>const的大写key前缀</p>
             <p><input type="text" id="pre"></p>
@@ -29,6 +30,7 @@
             <p><input type="text" id="actionPre"></p>
         </div>
         <button id="btn">生成</button>
+        <button id="newBtn">从service生成</button>
         <button id="clear">清空</button>
     </div>
     <script src="../../lib/js/jquery.min.js"></script>
