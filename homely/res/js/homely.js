@@ -561,11 +561,11 @@ $(document).ready(function () {
                         <td><a href="${bigDetailSina}${this.addStartsStock(temp[2])}" target="_blank" >${temp[1]}<span class="badge">大单</span></a></td>`;
             // 增加涨点颜色配置
             if(temp[32] >=0){
-              html += `<td style="color:red;font-weight:900;">${temp[3]}</td>
-                       <td style="color:red;font-weight:900;">${temp[32]}%</td>`
+              html += `<td style="font-weight:900;">👹 ${temp[3]}</td>
+                       <td style="font-weight:900;">👹 ${temp[32]}%</td>`
             }else{
-              html += `<td style="color:#00ff00;font-weight:900;">${temp[3]}</td>
-                       <td style="color:#00ff00;font-weight:900;">${temp[32]}%</td>`
+              html += `<td style="font-weight:900;">${temp[3]}</td>
+                       <td style="font-weight:900;">${temp[32]}%</td>`
             }
             html += `<td>${temp[33]}</td>
                      <td>${temp[34]}</td>
