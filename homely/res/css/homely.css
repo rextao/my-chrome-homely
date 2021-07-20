@@ -273,11 +273,12 @@ html{
     position: absolute;
     left: 0;
     bottom: 0;
-    width: 510px;
-    height: 300px;
+    width: 600px;
+    height: 500px;
     background-color: transparent;
     color: #fff;
     overflow-y:scroll;
+    border: none;
 }
 #stockWrapper a{
     color: #fff;
@@ -301,10 +302,23 @@ html{
 #stockWrapper table td:hover .badge{
     background-color: #ff7d00;
 }
+#stockWrapper table td {
+    width: 80px;
+    text-align: right;
+}
+#stockWrapper table td:nth-child(1) {
+    width: 150px;
+}
+#stockWrapper table td:nth-child(2) {
+    width: 120px;
+}
 #stockWrapper textarea{
     background:transparent;
 }
 #freshTimer input[type=text]{
     width: 30px;
     color: #000;
+}
+#fresh, #stockPosition  {
+    opacity: 0.7;
 }
