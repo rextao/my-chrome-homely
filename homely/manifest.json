@@ -13,13 +13,24 @@
     "omnibox": {
         "keyword": "hl"
     },
+    "browser_action": {
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["work/main.js"],
+            "run_at": "document_start"
+        }
+    ],
     "background": {
         "scripts": ["res/js/background.js"],
         "persistent": false
     },
     "permissions": [
         "fontSettings",
-        "storage"
+        "storage",
+        "tabs"
     ],
     "optional_permissions": [
         "bookmarks",

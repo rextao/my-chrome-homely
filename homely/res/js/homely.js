@@ -220,7 +220,7 @@ $(document).ready(function () {
   };
   // load settings
   chrome.storage.local.get(function (store) {
-    var firstRun = $.isEmptyObject(store);
+    var firstRun = $.isEmptyObject(store.links);
     // load links first
     if (!firstRun) settings.links.content = store.links.content;
     // merge settings with defaults
