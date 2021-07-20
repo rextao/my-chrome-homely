@@ -170,13 +170,13 @@ export default {
             const lowerMethod = method.toLowerCase();
             if (lowerMethod === 'get') {
                 return `${chineseLine} export function ${name}(payload) {
-                    return $http.${lowerMethod}(URL_API.${convertUrl}, {
+                    return http.${lowerMethod}(URL_API.${convertUrl}, {
                         params: payload
                     });
                 }\n`;
             }
             return `${chineseLine} export function ${name}(payload) {
-                    return $http.${lowerMethod}(URL_API.${convertUrl}, payload);
+                    return http.${lowerMethod}(URL_API.${convertUrl}, payload);
                 }\n`;
         },
         getArray(str) {
