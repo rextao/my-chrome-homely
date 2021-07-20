@@ -1,4 +1,5 @@
 (function () {
+    const isChinese = /[\u4e00-\u9fa5]/;
     const $original = $('#original');
     const $const = $('#const');
     const $service = $('#service');
@@ -78,5 +79,65 @@
     function clear() {
         $const.val('');
         $service.val('');
+    }
+    // 生成通用表单table
+    const $generalTable = $('#generalTable');
+    const $cols = $generalTable.find('.cols');
+    const $create = $generalTable.find('.create');
+    const $createFilter = $generalTable.find('.createFilter');
+    const $result = $generalTable.find('.result');
+    const btnCols = ['dialogForm', 'buttonReq', 'href'];
+    $create.on('click', function () {
+        const cols = [];
+        loopCols(cols, (key, val, arr) => {
+            const type = arr[2];
+            const col = {
+                key: arr[val],
+                type: type || "text",
+                props: null,
+                rowName: arr[key],
+            };
+            if (btnCols.includes(type)) {
+                col.items = [{
+                    url: '',
+                    openAllParams: false,
+                    desc: '',
+                }];
+            }
+            return col;
+        });
+        $result.val(JSON.stringify(cols));
+    });
+    $createFilter.on('click', function () {
+        const filters = [];
+        loopCols(filters, (key, val, arr) => {
+            const type = arr[2];
+            return {
+                keys: [arr[val]],
+                type: type || "input",// filters默认
+                props: null,
+                dataType: null,
+                unitName: arr[key],
+            };
+        });
+        const obj = {
+            filters,
+        };
+        $result.val(JSON.stringify(obj));
+
+    });
+    function loopCols(cols, createCol) {
+        const val = $cols.val();
+        val.split('\n').forEach(item => {
+            const arr = item.split(/[:：\s]/g);
+            // 默认 arr顺序是[中文,英文,type]
+            let key = 0;
+            let val = 1;
+            if (!new RegExp(isChinese, 'g').test(arr[0])){
+                key = 1;
+                val = 0;
+            }
+            cols.push(createCol(key, val, arr));
+        });
     }
 })();
