@@ -137,7 +137,7 @@ export default {
                 // 如未提供开头的字符，则默认为空
                 const preUrl = this.pre ? `${this.pre.toUpperCase()}_` : '';
                 const upperKey = `${preUrl}${lineUrl}`;
-                action += `${upperKey}: '${originUrl}', \n`;
+                action += `// ${chinese}\n${upperKey}: '${originUrl}', \n`;
                 newService += this.getFunc(serviceKey, upperKey, chinese, method);
             });
             serviceData.data = newService;
@@ -169,15 +169,15 @@ export default {
             const chineseLine = chinese ? `// ${chinese}\n` : '';
             const lowerMethod = method.toLowerCase();
             if (lowerMethod === 'get') {
-                return `    ${chineseLine}${name}(payload) {
+                return `${chineseLine} export function ${name}(payload) {
                     return $http.${lowerMethod}(URL_API.${convertUrl}, {
                         params: payload
                     });
-                },\n`;
+                }\n`;
             }
-            return `    ${chineseLine}${name}(payload) {
+            return `${chineseLine} export function ${name}(payload) {
                     return $http.${lowerMethod}(URL_API.${convertUrl}, payload);
-                },\n`;
+                }\n`;
         },
         getArray(str) {
             return str.split('\n');
